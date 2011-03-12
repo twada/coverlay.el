@@ -28,7 +28,6 @@
      (string-to-number (tq-csv-next-field-to-string)) nil))))
 
 
-
 (expectations
    (desc "quoted list")
    (expect '(3 5)
@@ -37,7 +36,7 @@
      '((3 5) (8 12)))
 
    (desc "file contents loading")
-   (expect 6
+   (expect 5
      (setq dir (file-name-directory (buffer-file-name (current-buffer))))
      (with-current-buffer (get-buffer-create "*tqcov-stats.csv*")
        (erase-buffer)
@@ -89,11 +88,19 @@
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
        (tq-csv-line-to-list)))
 
-   (expect '("/path/to/app/init.js" 2 2)
+   (expect '("/path/to/app/init.js" 3 1)
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
        (tq-csv-line-to-list)
        (forward-line)
        (tq-csv-line-to-list)))
+
+   (desc "map-csv-lines-to-list")
+   (expect '("/path/to/app/init.js" 3 1)
+     (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
+       (tq-csv-line-to-list)
+       (forward-line)
+       (tq-csv-line-to-list)))
+
 
    (desc "csv-split-string")
    (expect '("/path/to/app/init.js,1,2")
