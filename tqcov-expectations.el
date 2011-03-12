@@ -22,8 +22,7 @@
 
 (defun tq-csv-line-to-list ()
   (cons
-   (tq-csv-field-to-string)
-   (cons
+   (tq-csv-field-to-string)   (cons
     (string-to-number (tq-csv-next-field-to-string))
     (cons
      (string-to-number (tq-csv-next-field-to-string)) nil))))
@@ -38,7 +37,7 @@
      '((3 5) (8 12)))
 
    (desc "file contents loading")
-   (expect 3594
+   (expect 6
      (setq dir (file-name-directory (buffer-file-name (current-buffer))))
      (with-current-buffer (get-buffer-create "*tqcov-stats.csv*")
        (erase-buffer)
@@ -51,44 +50,56 @@
        (csv-forward-field 0)
        (point)
        ))
-   (expect 103
+   (expect 21
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
        (csv-forward-field 1)
        (point)
        ))
-   (expect 105
+   (expect 23
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
        (csv-forward-field 2)
        (point)
        ))
-   (expect 107
+   (expect 25
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
        (csv-forward-field 3)
        (point)
        ))
-   (expect 210
+   (expect 46
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
        (csv-forward-field 4)
        (point)
        ))
 
    (desc "substr field")
-   (expect "/home/takuto/work/git-sandbox/turquoise/turquoise-editor/public/editor/js_1_8_prototype_js_override.js"
+   (expect "/path/to/app/init.js"
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
        (tq-csv-field-to-string)))
 
-   (expect 6
+   (expect 1
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
        (string-to-number (tq-csv-next-field-to-string))))
 
-   (expect 1
+   (expect 2
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
        (tq-csv-next-field-to-string)
        (string-to-number (tq-csv-next-field-to-string))))
 
-   (expect '("/home/takuto/work/git-sandbox/turquoise/turquoise-editor/public/editor/js_1_8_prototype_js_override.js" 6 1)
+   (expect '("/path/to/app/init.js" 1 2)
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
        (tq-csv-line-to-list)))
+
+   (expect '("/path/to/app/init.js" 2 2)
+     (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
+       (tq-csv-line-to-list)
+       (forward-line)
+       (tq-csv-line-to-list)))
+
+   (desc "csv-split-string")
+   (expect '("/path/to/app/init.js,1,2")
+     (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
+       (csv-split-string
+		(buffer-substring-no-properties (point) (line-end-position)))))
 
 
    ;; (desc "csv-interactive-args")
