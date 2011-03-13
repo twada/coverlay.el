@@ -32,29 +32,28 @@
     (cons
      (string-to-number (tq-csv-next-field-to-string)) nil))))
 
+(defun tq-handle-uncovered-line (alist filename lineno)
+  (setq file-segments (assoc filename alist))
+  (setq segment-list-body (cdr file-segments))
+  (if (not segment-list-body)
+      (setcdr file-segments (list lineno lineno))
+    (if (= (car segment-list-body) (- lineno 1))
+        (setcar segment-list-body lineno)
+      (setcdr file-segments (append (list lineno lineno) segment-list-body)))))
+
 (defun tq-iterate-lines ()
   (setq alist nil)
   (while (not (eobp))
     (setq csv-cols (tq-csv-line-to-list))
-
     (setq filename (nth 0 csv-cols))
     (setq lineno (nth 1 csv-cols))
     (setq count (nth 2 csv-cols))
-
     (when (not (assoc filename alist))
       ;; (print (format "segments for %s does not exist" filename))
       (setq alist (cons (list filename) alist)))
-
     (when (= count 0)
       ;; (print (format "count %d is zero" count))
-      (setq file-segments (assoc filename alist))
-      (setq segment-list-body (cdr file-segments))
-      (if (not segment-list-body)
-          (setcdr file-segments (list lineno lineno))
-        (if (= (car segment-list-body) (- lineno 1))
-            (setcar segment-list-body lineno)
-          (setcdr file-segments (append (list lineno lineno) segment-list-body)))))
-
+      (tq-handle-uncovered-line alist filename lineno))
     (forward-line 1))
   alist
   )
