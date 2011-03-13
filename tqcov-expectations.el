@@ -41,7 +41,7 @@
         (setcar segment-list-body lineno)
       (setcdr file-segments (append (list lineno lineno) segment-list-body)))))
 
-(defun tq-iterate-lines ()
+(defun tq-cov-parse-buffer ()
   (setq alist nil)
   (while (not (eobp))
     (setq csv-cols (tq-csv-line-to-list))
@@ -58,11 +58,6 @@
   alist
   )
 
-(defun tmp-test ()
-  (interactive)
-  (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
-    (tq-iterate-lines)
-    ))
 
 
 (expectations
@@ -170,28 +165,23 @@
    (desc "alist")
    (expect '("/path/to/app/init.js" 6 4)
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
-       (assoc "/path/to/app/init.js" (tq-iterate-lines))
+       (assoc "/path/to/app/init.js" (tq-cov-parse-buffer))
        ))
    (expect '("/path/to/app/init.js" 8 8 6 4)
      (with-current-buffer (tq-cov-test-setup "coverage_stats2.csv")
-       (assoc "/path/to/app/init.js" (tq-iterate-lines))
+       (assoc "/path/to/app/init.js" (tq-cov-parse-buffer))
        ))
    (expect '("/path/to/lib/utils.js" 82 82 76 76 70 70 62 62 55 55 38 37 29 27 24 22 17 17 6 4)
      (with-current-buffer (tq-cov-test-setup "coverage_stats3.csv")
-       (assoc "/path/to/lib/utils.js" (tq-iterate-lines))
+       (assoc "/path/to/lib/utils.js" (tq-cov-parse-buffer))
        ))
    (expect '("/path/to/app/init.js" 20 19)
      (with-current-buffer (tq-cov-test-setup "coverage_stats4.csv")
-       (assoc "/path/to/app/init.js" (tq-iterate-lines))
+       (assoc "/path/to/app/init.js" (tq-cov-parse-buffer))
        ))
    (expect '("/path/to/lib/utils.js" 82 82 76 76 70 70 62 62 55 55 38 37 29 27 24 22 17 17 6 4)
      (with-current-buffer (tq-cov-test-setup "coverage_stats4.csv")
-       (assoc "/path/to/lib/utils.js" (tq-iterate-lines))
+       (assoc "/path/to/lib/utils.js" (tq-cov-parse-buffer))
        ))
-
-   ;; (desc "csv-interactive-args")
-   ;; (expect '(1 103)
-   ;;   (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
-   ;;     (csv-interactive-args 'single)))
 
    )
