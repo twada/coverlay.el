@@ -25,12 +25,10 @@
 
 (defun tq-csv-line-to-list ()
   "This function DOES move point."
-  (cons
+  (list
    (tq-csv-current-field-to-string)
-   (cons
-    (string-to-number (tq-csv-next-field-to-string))
-    (cons
-     (string-to-number (tq-csv-next-field-to-string)) nil))))
+   (string-to-number (tq-csv-next-field-to-string))
+   (string-to-number (tq-csv-next-field-to-string))))
 
 (defun tq-handle-uncovered-line (alist filename lineno)
   (setq file-segments (assoc filename alist))
@@ -89,7 +87,6 @@
      (cdr (assoc "hoge" words))
      )
 
-
    (desc "file contents loading")
    (expect 5
      (setq dir (file-name-directory (buffer-file-name (current-buffer))))
@@ -125,44 +122,31 @@
        (point)
        ))
 
-   (desc "substr field")
+   (desc "tq-csv-current-field-to-string")
    (expect "/path/to/app/init.js"
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
        (tq-csv-current-field-to-string)))
 
+   (desc "tq-csv-next-field-to-string")
    (expect 1
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
        (string-to-number (tq-csv-next-field-to-string))))
-
    (expect 2
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
        (tq-csv-next-field-to-string)
        (string-to-number (tq-csv-next-field-to-string))))
 
+   (desc "csv-lines-to-list")
    (expect '("/path/to/app/init.js" 1 2)
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
        (tq-csv-line-to-list)))
-
    (expect '("/path/to/app/init.js" 3 1)
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
        (tq-csv-line-to-list)
        (forward-line)
        (tq-csv-line-to-list)))
 
-   (desc "map-csv-lines-to-list")
-   (expect '("/path/to/app/init.js" 3 1)
-     (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
-       (tq-csv-line-to-list)
-       (forward-line)
-       (tq-csv-line-to-list)))
-
-   (desc "csv-split-string")
-   (expect '("/path/to/app/init.js,1,2")
-     (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
-       (csv-split-string
-		(buffer-substring-no-properties (point) (line-end-position)))))
-
-   (desc "alist")
+   (desc "tq-cov-parse-buffer")
    (expect '("/path/to/app/init.js" 6 4)
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
        (assoc "/path/to/app/init.js" (tq-cov-parse-buffer))
