@@ -177,11 +177,15 @@
        (setq alist (tq-iterate-lines))
        (assoc "/path/to/app/init.js" alist)
        ))
-
    (expect '("/path/to/app/init.js" 8 8 6 4)
      (with-current-buffer (tq-cov-test-setup "coverage_stats2.csv")
        (setq alist (tq-iterate-lines))
        (assoc "/path/to/app/init.js" alist)
+       ))
+   (expect '("/path/to/lib/utils.js" 82 82 76 76 70 70 62 62 55 55 38 37 29 22 17 17 6 4)
+     (with-current-buffer (tq-cov-test-setup "coverage_stats3.csv")
+       (setq alist (tq-iterate-lines))
+       (assoc "/path/to/lib/utils.js" alist)
        ))
 
    ;; (desc "csv-interactive-args")
