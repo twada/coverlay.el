@@ -29,26 +29,48 @@
     (cons
      (string-to-number (tq-csv-next-field-to-string)) nil))))
 
-
-(defun tq-iterate-lines (alist)
+(defun tq-iterate-lines ()
+  (setq alist nil)
   (print "start")
   (while (not (eobp))
     (setq line (tq-csv-line-to-list))
     (setq filename (car line))
+
+    (when (not (assoc filename alist))
+      (print (format "segment-alist for %s does not exist" filename))
+      (setq alist (cons (list filename) alist))
+      ;; (setq alist (cons (cons filename nil) alist))
+      )
+
     (setq lineno (car (cdr line)))
     (setq count (car (cdr (cdr line))))
+    (print (format "line:%d, count:%d" lineno count))
 
-    (print (concat filename ":" (number-to-string lineno) ":" (number-to-string count)))
-    ;; (print (car (cdr line)))
+    (setq file-segments (assoc filename alist))
+    (setq segments (cdr file-segments))
+    (print segments) ;; nil
+
+    (when (= count 0)
+      (print (format "count %d is zero" count))
+      (if (not segments)
+          (progn
+            (print "(not segments)")
+            (setcdr file-segments (list lineno lineno))
+            )
+        (when (= (car segments) (- lineno 1))
+          (print "(= (car segments) (- lineno 1)")
+          (setcar segments lineno))))
+
+    (print segments)
     (forward-line 1)
-    ))
-
+    )
+  alist
+  )
 
 (defun tmp-test ()
   (interactive)
   (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
-    (tq-iterate-lines '())
-    ;; (tq-map-csv-lines-to-list (list))
+    (tq-iterate-lines)
     ))
 
 
@@ -67,6 +89,18 @@
    (expect nil
      (setq words '(("hoge" . "fuga") ("foo" . "bar") ("toto" . "titi")))
      (assoc "BOO" words)
+     )
+   (expect '("hoge")
+     (setq words '(("hoge")))
+     (assoc "hoge" words)
+     )
+   (expect nil
+     (setq words '(("hoge")))
+     (cdr (assoc "hoge" words))
+     )
+   (expect '("fuga" "piyo" "moge")
+     (setq words '(("hoge" "fuga" "piyo" "moge")))
+     (cdr (assoc "hoge" words))
      )
 
 
@@ -142,11 +176,12 @@
        (csv-split-string
 		(buffer-substring-no-properties (point) (line-end-position)))))
 
-   ;; (desc "tq-map-csv-lines-to-list")
-   ;; (expect '("/path/to/app/init.js" 3 1)
-   ;;   (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
-   ;;     (tq-map-csv-lines-to-list (list))
-   ;;     ))
+   (desc "alist")
+   (expect '("/path/to/app/init.js" 6 4)
+     (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
+       (setq alist (tq-iterate-lines))
+       (assoc "/path/to/app/init.js" alist)
+       ))
 
    ;; (desc "csv-interactive-args")
    ;; (expect '(1 103)
