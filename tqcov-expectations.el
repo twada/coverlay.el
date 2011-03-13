@@ -6,6 +6,7 @@
     (csv-mode)
     (erase-buffer)
     (insert-file-contents (concat dir data-file))
+    (beginning-of-buffer)
     (current-buffer)
     ))
 
@@ -22,10 +23,50 @@
 
 (defun tq-csv-line-to-list ()
   (cons
-   (tq-csv-field-to-string)   (cons
+   (tq-csv-field-to-string)
+   (cons
     (string-to-number (tq-csv-next-field-to-string))
     (cons
      (string-to-number (tq-csv-next-field-to-string)) nil))))
+
+
+
+
+(defun tq-iterate-lines ()
+  (print "start")
+  (while (not (eobp))
+    (setq line (tq-csv-line-to-list))
+    (setq filename (car line))
+    (setq lineno (car (cdr line)))
+    (setq count (car (cdr (cdr line))))
+
+    (print (concat filename ":" (number-to-string lineno) ":" (number-to-string count)))
+    ;; (print (car (cdr line)))
+    (forward-line 1)
+    ))
+
+
+
+(defun tq-map-csv-lines-to-list (accum)
+  (if (eobp)
+      (progn (print "(eobp)")
+             nil
+             )
+    (progn
+      (if (not (bobp))
+          (print "(not (bobp), forward-line")
+          (forward-line)
+        nil)
+      (print (car accum))
+      (tq-map-csv-lines-to-list (cons (tq-csv-line-to-list) accum)))))
+
+
+(defun tmp-test ()
+  (interactive)
+  (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
+    (tq-iterate-lines)
+    ;; (tq-map-csv-lines-to-list (list))
+    ))
 
 
 (expectations
@@ -101,12 +142,17 @@
        (forward-line)
        (tq-csv-line-to-list)))
 
-
    (desc "csv-split-string")
    (expect '("/path/to/app/init.js,1,2")
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
        (csv-split-string
 		(buffer-substring-no-properties (point) (line-end-position)))))
+
+   (desc "tq-map-csv-lines-to-list")
+   (expect '("/path/to/app/init.js" 3 1)
+     (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
+       (tq-map-csv-lines-to-list (list))
+       ))
 
 
    ;; (desc "csv-interactive-args")
