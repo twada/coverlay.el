@@ -30,9 +30,7 @@
      (string-to-number (tq-csv-next-field-to-string)) nil))))
 
 
-
-
-(defun tq-iterate-lines ()
+(defun tq-iterate-lines (alist)
   (print "start")
   (while (not (eobp))
     (setq line (tq-csv-line-to-list))
@@ -46,25 +44,10 @@
     ))
 
 
-
-(defun tq-map-csv-lines-to-list (accum)
-  (if (eobp)
-      (progn (print "(eobp)")
-             nil
-             )
-    (progn
-      (if (not (bobp))
-          (print "(not (bobp), forward-line")
-          (forward-line)
-        nil)
-      (print (car accum))
-      (tq-map-csv-lines-to-list (cons (tq-csv-line-to-list) accum)))))
-
-
 (defun tmp-test ()
   (interactive)
   (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
-    (tq-iterate-lines)
+    (tq-iterate-lines '())
     ;; (tq-map-csv-lines-to-list (list))
     ))
 
@@ -75,6 +58,17 @@
      '(3 5))
    (expect '((3 5) (8 12))
      '((3 5) (8 12)))
+
+   (desc "alist learning")
+   (expect '("foo" . "bar")
+     (setq words '(("hoge" . "fuga") ("foo" . "bar") ("toto" . "titi")))
+     (assoc "foo" words)
+     )
+   (expect nil
+     (setq words '(("hoge" . "fuga") ("foo" . "bar") ("toto" . "titi")))
+     (assoc "BOO" words)
+     )
+
 
    (desc "file contents loading")
    (expect 5
@@ -148,12 +142,11 @@
        (csv-split-string
 		(buffer-substring-no-properties (point) (line-end-position)))))
 
-   (desc "tq-map-csv-lines-to-list")
-   (expect '("/path/to/app/init.js" 3 1)
-     (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
-       (tq-map-csv-lines-to-list (list))
-       ))
-
+   ;; (desc "tq-map-csv-lines-to-list")
+   ;; (expect '("/path/to/app/init.js" 3 1)
+   ;;   (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
+   ;;     (tq-map-csv-lines-to-list (list))
+   ;;     ))
 
    ;; (desc "csv-interactive-args")
    ;; (expect '(1 103)
