@@ -11,17 +11,20 @@
     ))
 
 (defun tq-csv-current-field-to-string ()
+  "This function does not move point."
   (buffer-substring (point)
                     (save-excursion
                       (forward-sexp 1)
                       (point))))
 
 (defun tq-csv-next-field-to-string ()
+  "This function DOES move point."
   (csv-forward-field 1)
   (forward-char 1)
   (tq-csv-current-field-to-string))
 
 (defun tq-csv-line-to-list ()
+  "This function DOES move point."
   (cons
    (tq-csv-current-field-to-string)
    (cons
@@ -33,6 +36,7 @@
   (setq alist nil)
   (while (not (eobp))
     (setq csv-cols (tq-csv-line-to-list))
+
     (setq filename (nth 0 csv-cols))
     (setq lineno (nth 1 csv-cols))
     (setq count (nth 2 csv-cols))
@@ -50,6 +54,7 @@
         (if (= (car segment-list-body) (- lineno 1))
             (setcar segment-list-body lineno)
           (setcdr file-segments (append (list lineno lineno) segment-list-body)))))
+
     (forward-line 1))
   alist
   )
