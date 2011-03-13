@@ -50,19 +50,11 @@
 
     (when (= count 0)
       ;; (print (format "count %d is zero" count))
-
-      ;; (if (and segments (= (car segments) (- lineno 1)))
-      ;;     (setcar segments lineno)
-      ;;   (setq file-segments (list lineno lineno) file-segments)))
-
       (if (not segments)
-          (progn
-            ;; (print "(not segments)")
-            (setcdr file-segments (list lineno lineno))
-            )
-        (when (= (car segments) (- lineno 1))
-          ;; (print "(= (car segments) (- lineno 1)")
-          (setcar segments lineno))))
+          (setcdr file-segments (list lineno lineno))
+        (if (= (car segments) (- lineno 1))
+            (setcar segments lineno)
+          (setcdr file-segments (append (list lineno lineno) segments)))))
 
     ;; (print segments)
     (forward-line 1)
@@ -182,6 +174,12 @@
    (desc "alist")
    (expect '("/path/to/app/init.js" 6 4)
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
+       (setq alist (tq-iterate-lines))
+       (assoc "/path/to/app/init.js" alist)
+       ))
+
+   (expect '("/path/to/app/init.js" 8 8 6 4)
+     (with-current-buffer (tq-cov-test-setup "coverage_stats2.csv")
        (setq alist (tq-iterate-lines))
        (assoc "/path/to/app/init.js" alist)
        ))
