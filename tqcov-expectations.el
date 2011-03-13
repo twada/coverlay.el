@@ -10,7 +10,7 @@
     (current-buffer)
     ))
 
-(defun tq-csv-field-to-string ()
+(defun tq-csv-current-field-to-string ()
   (buffer-substring (point)
                     (save-excursion
                       (forward-sexp 1)
@@ -19,11 +19,11 @@
 (defun tq-csv-next-field-to-string ()
   (csv-forward-field 1)
   (forward-char 1)
-  (tq-csv-field-to-string))
+  (tq-csv-current-field-to-string))
 
 (defun tq-csv-line-to-list ()
   (cons
-   (tq-csv-field-to-string)
+   (tq-csv-current-field-to-string)
    (cons
     (string-to-number (tq-csv-next-field-to-string))
     (cons
@@ -31,37 +31,40 @@
 
 (defun tq-iterate-lines ()
   (setq alist nil)
-  (print "start")
+  ;; (print "start")
   (while (not (eobp))
     (setq line (tq-csv-line-to-list))
     (setq filename (car line))
 
     (when (not (assoc filename alist))
-      (print (format "segment-alist for %s does not exist" filename))
-      (setq alist (cons (list filename) alist))
-      ;; (setq alist (cons (cons filename nil) alist))
-      )
+      ;; (print (format "segment-alist for %s does not exist" filename))
+      (setq alist (cons (list filename) alist)))
 
     (setq lineno (car (cdr line)))
     (setq count (car (cdr (cdr line))))
-    (print (format "line:%d, count:%d" lineno count))
+    ;; (print (format "line:%d, count:%d" lineno count))
 
     (setq file-segments (assoc filename alist))
     (setq segments (cdr file-segments))
-    (print segments) ;; nil
+    ;; (print segments) ;; nil
 
     (when (= count 0)
-      (print (format "count %d is zero" count))
+      ;; (print (format "count %d is zero" count))
+
+      ;; (if (and segments (= (car segments) (- lineno 1)))
+      ;;     (setcar segments lineno)
+      ;;   (setq file-segments (list lineno lineno) file-segments)))
+
       (if (not segments)
           (progn
-            (print "(not segments)")
+            ;; (print "(not segments)")
             (setcdr file-segments (list lineno lineno))
             )
         (when (= (car segments) (- lineno 1))
-          (print "(= (car segments) (- lineno 1)")
+          ;; (print "(= (car segments) (- lineno 1)")
           (setcar segments lineno))))
 
-    (print segments)
+    ;; (print segments)
     (forward-line 1)
     )
   alist
@@ -142,7 +145,7 @@
    (desc "substr field")
    (expect "/path/to/app/init.js"
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
-       (tq-csv-field-to-string)))
+       (tq-csv-current-field-to-string)))
 
    (expect 1
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
