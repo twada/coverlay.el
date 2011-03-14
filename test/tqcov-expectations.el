@@ -1,69 +1,8 @@
-(require 'csv-mode)
+(require 'tqcov)
 
 (defun tq-cov-test-setup (data-file)
   (setq dir (file-name-directory (buffer-file-name (current-buffer))))
-  (with-current-buffer (get-buffer-create "*tqcov-stats.csv*")
-    (csv-mode)
-    (erase-buffer)
-    (insert-file-contents (concat dir data-file))
-    (beginning-of-buffer)
-    (current-buffer)
-    ))
-
-(defun tq-csv-current-field-to-string ()
-  "This function does not move point."
-  (buffer-substring (point)
-                    (save-excursion
-                      (forward-sexp 1)
-                      (point))))
-
-(defun tq-csv-next-field-to-string ()
-  "This function DOES move point."
-  (csv-forward-field 1)
-  (forward-char 1)
-  (tq-csv-current-field-to-string))
-
-(defun tq-csv-line-to-list ()
-  "This function DOES move point."
-  (list
-   (tq-csv-current-field-to-string)
-   (string-to-number (tq-csv-next-field-to-string))
-   (string-to-number (tq-csv-next-field-to-string))))
-
-(defun tq-handle-uncovered-line (alist filename lineno)
-  (setq file-segments (assoc filename alist))
-  (setq segment-list-body (cdr file-segments))
-  (if (not segment-list-body)
-      (setcdr file-segments (list lineno lineno))
-    (if (= (car segment-list-body) (- lineno 1))
-        (setcar segment-list-body lineno)
-      (setcdr file-segments (append (list lineno lineno) segment-list-body)))))
-
-(defun tq-cov-create-tuple-pairs (even-list)
-  (if (not even-list)
-      nil
-    (cons
-     (list (car even-list) (car (cdr even-list)))
-     (tq-cov-create-tuple-pairs (nthcdr 2 even-list)))))
-
-(defun tq-cov-parse-buffer ()
-  (setq alist nil)
-  (while (not (eobp))
-    (setq csv-cols (tq-csv-line-to-list))
-    (setq filename (nth 0 csv-cols))
-    (setq lineno (nth 1 csv-cols))
-    (setq count (nth 2 csv-cols))
-    (when (not (assoc filename alist))
-      ;; (print (format "segments for %s does not exist" filename))
-      (setq alist (cons (list filename) alist)))
-    (when (= count 0)
-      ;; (print (format "count %d is zero" count))
-      (tq-handle-uncovered-line alist filename lineno))
-    (forward-line 1))
-  alist
-  )
-
-
+  (tq-cov-create-stats-buffer (concat dir data-file)))
 
 (expectations
    (desc "quoted list")
@@ -156,23 +95,23 @@
    (desc "tq-cov-parse-buffer")
    (expect '("/path/to/app/init.js" 6 4)
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
-       (assoc "/path/to/app/init.js" (tq-cov-parse-buffer))
+       (assoc "/path/to/app/init.js" (tq-cov-parse-buffer (current-buffer)))
        ))
    (expect '("/path/to/app/init.js" 8 8 6 4)
      (with-current-buffer (tq-cov-test-setup "coverage_stats2.csv")
-       (assoc "/path/to/app/init.js" (tq-cov-parse-buffer))
+       (assoc "/path/to/app/init.js" (tq-cov-parse-buffer (current-buffer)))
        ))
    (expect '("/path/to/lib/utils.js" 82 82 76 76 70 70 62 62 55 55 38 37 29 27 24 22 17 17 6 4)
      (with-current-buffer (tq-cov-test-setup "coverage_stats3.csv")
-       (assoc "/path/to/lib/utils.js" (tq-cov-parse-buffer))
+       (assoc "/path/to/lib/utils.js" (tq-cov-parse-buffer (current-buffer)))
        ))
    (expect '("/path/to/app/init.js" 20 19)
      (with-current-buffer (tq-cov-test-setup "coverage_stats4.csv")
-       (assoc "/path/to/app/init.js" (tq-cov-parse-buffer))
+       (assoc "/path/to/app/init.js" (tq-cov-parse-buffer (current-buffer)))
        ))
    (expect '("/path/to/lib/utils.js" 82 82 76 76 70 70 62 62 55 55 38 37 29 27 24 22 17 17 6 4)
      (with-current-buffer (tq-cov-test-setup "coverage_stats4.csv")
-       (assoc "/path/to/lib/utils.js" (tq-cov-parse-buffer))
+       (assoc "/path/to/lib/utils.js" (tq-cov-parse-buffer (current-buffer)))
        ))
 
    (desc "tq-cov-create-tuple-pairs")
@@ -182,6 +121,13 @@
      (tq-cov-create-tuple-pairs '("foo" "bar" "baz" "hoge" "fuga")))
    (expect '((4 6) (17 17) (22 24) (27 29) (37 38) (55 55) (62 62) (70 70) (76 76) (82 82))
      (with-current-buffer (tq-cov-test-setup "coverage_stats4.csv")
-       (tq-cov-create-tuple-pairs (nreverse (cdr (assoc "/path/to/lib/utils.js" (tq-cov-parse-buffer)))))
+       (tq-cov-create-tuple-pairs (nreverse (cdr (assoc "/path/to/lib/utils.js" (tq-cov-parse-buffer (current-buffer))))))
        ))
+
+   (desc "tq-cov-load-stats-alist")
+   (expect '((4 6) (17 17) (22 24) (27 29) (37 38) (55 55) (62 62) (70 70) (76 76) (82 82))
+     (setq stats-buf (tq-cov-test-setup "coverage_stats4.csv"))
+     (setq stats-alist (tq-cov-parse-buffer stats-buf))
+     (cdr (assoc "/path/to/lib/utils.js" stats-alist)))
+
    )
