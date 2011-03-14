@@ -39,6 +39,13 @@
         (setcar segment-list-body lineno)
       (setcdr file-segments (append (list lineno lineno) segment-list-body)))))
 
+(defun tq-cov-create-tuple-pairs (even-list)
+  (if (not even-list)
+      nil
+    (cons
+     (list (car even-list) (car (cdr even-list)))
+     (tq-cov-create-tuple-pairs (nthcdr 2 even-list)))))
+
 (defun tq-cov-parse-buffer ()
   (setq alist nil)
   (while (not (eobp))
@@ -168,4 +175,13 @@
        (assoc "/path/to/lib/utils.js" (tq-cov-parse-buffer))
        ))
 
+   (desc "tq-cov-create-tuple-pairs")
+   (expect '(("foo" "bar") ("baz" "hoge"))
+     (tq-cov-create-tuple-pairs '("foo" "bar" "baz" "hoge")))
+   (expect '(("foo" "bar") ("baz" "hoge") ("fuga" nil))
+     (tq-cov-create-tuple-pairs '("foo" "bar" "baz" "hoge" "fuga")))
+   (expect '((4 6) (17 17) (22 24) (27 29) (37 38) (55 55) (62 62) (70 70) (76 76) (82 82))
+     (with-current-buffer (tq-cov-test-setup "coverage_stats4.csv")
+       (tq-cov-create-tuple-pairs (nreverse (cdr (assoc "/path/to/lib/utils.js" (tq-cov-parse-buffer)))))
+       ))
    )
