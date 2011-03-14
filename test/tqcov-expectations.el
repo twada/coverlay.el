@@ -124,10 +124,17 @@
        (tq-cov-create-tuple-pairs (nreverse (cdr (assoc "/path/to/lib/utils.js" (tq-cov-parse-buffer (current-buffer))))))
        ))
 
-   (desc "tq-cov-load-stats-alist")
-   (expect '((4 6) (17 17) (22 24) (27 29) (37 38) (55 55) (62 62) (70 70) (76 76) (82 82))
-     (setq stats-buf (tq-cov-test-setup "coverage_stats4.csv"))
-     (setq stats-alist (tq-cov-parse-buffer stats-buf))
-     (cdr (assoc "/path/to/lib/utils.js" stats-alist)))
+   (desc "tq-cov-reverse-cdr-of-alist")
+   (expect '("/path/to/app/init.js" 4 6 8 8)
+     (with-current-buffer (tq-cov-test-setup "coverage_stats2.csv")
+       (setq rev-alist (tq-cov-reverse-cdr-of-alist (tq-cov-parse-buffer (current-buffer))))
+       (assoc "/path/to/app/init.js" rev-alist)
+       ))
+
+   ;; (desc "tq-cov-load-stats-alist")
+   ;; (expect '((4 6) (17 17) (22 24) (27 29) (37 38) (55 55) (62 62) (70 70) (76 76) (82 82))
+   ;;   (setq stats-buf (tq-cov-test-setup "coverage_stats4.csv"))
+   ;;   (setq stats-alist (tq-cov-parse-buffer stats-buf))
+   ;;   (cdr (assoc "/path/to/lib/utils.js" stats-alist)))
 
    )

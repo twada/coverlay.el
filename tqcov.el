@@ -48,6 +48,19 @@
      (list (car even-list) (car (cdr even-list)))
      (tq-cov-create-tuple-pairs (nthcdr 2 even-list)))))
 
+(defun tq-cov-reverse-cdr-of-alist (target-alist)
+  (if (not target-alist)
+      nil
+    (cons
+     ;; (list (car (car target-alist)) (nreverse (cdr (car target-alist))))
+     (cons
+      (car (car target-alist))
+      (reverse (cdr (car target-alist))))
+     ;; (progn
+     ;;   (nreverse (cdr (car target-alist)))
+     ;;   (car target-alist))
+     (tq-cov-reverse-cdr-of-alist (cdr target-alist)))))
+
 (defun tq-cov-parse-buffer (buf)
   (setq statsbuf (or buf (current-buffer)))
   (setq alist nil)
