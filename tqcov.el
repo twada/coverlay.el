@@ -13,20 +13,20 @@
     ))
 
 (defun tq-csv-current-field-to-string ()
-  "This function does not move point."
+  "Convert current csv field to string. This function does not move point."
   (buffer-substring (point)
                     (save-excursion
                       (forward-sexp 1)
                       (point))))
 
 (defun tq-csv-next-field-to-string ()
-  "This function DOES move point."
+  "Convert next csv field to string. This function DOES move point."
   (csv-forward-field 1)
   (forward-char 1)
   (tq-csv-current-field-to-string))
 
 (defun tq-csv-line-to-list ()
-  "This function DOES move point."
+  "Convert current coverage stats line to list (string int int). This function DOES move point."
   (list
    (tq-csv-current-field-to-string)
    (string-to-number (tq-csv-next-field-to-string))
@@ -41,28 +41,8 @@
         (setcar segment-list-body lineno)
       (setcdr file-segments (append (list lineno lineno) segment-list-body)))))
 
-(defun tq-cov-create-tuple-pairs (even-list)
-  (if (not even-list)
-      nil
-    (cons
-     (list (car even-list) (car (cdr even-list)))
-     (tq-cov-create-tuple-pairs (nthcdr 2 even-list)))))
-
-(defun tq-cov-reverse-cdr-of-alist (target-alist)
-  (if (not target-alist)
-      nil
-    (cons
-     ;; (list (car (car target-alist)) (nreverse (cdr (car target-alist))))
-     (cons
-      (car (car target-alist))
-      (reverse (cdr (car target-alist))))
-     ;; (progn
-     ;;   (nreverse (cdr (car target-alist)))
-     ;;   (car target-alist))
-     (tq-cov-reverse-cdr-of-alist (cdr target-alist)))))
-
 (defun tq-cov-parse-buffer (buf)
-  (setq statsbuf (or buf (current-buffer)))
+  "Parse buffer to alist. car of alist is filename, cdr is segment of lines."
   (setq alist nil)
   (with-current-buffer buf
     (while (not (eobp))
@@ -80,6 +60,36 @@
     )
   alist
   )
+
+(defun tq-cov-create-tuple-pairs (even-list)
+  "convert (foo bar baz hoge) to ((foo bar) (baz hoge))"
+  (if (not even-list)
+      nil
+    (cons
+     (list (car even-list) (car (cdr even-list)))
+     (tq-cov-create-tuple-pairs (nthcdr 2 even-list)))))
+
+(defun tq-cov-reverse-cdr-of-alist (target-alist)
+  "convert '((Japanese . (hoge fuga piyo)) (English . (foo bar baz))) to '((Japanese . (piyo fuga hoge)) (English . (baz bar foo)))"
+  (if (not target-alist)
+      nil
+    (cons
+     (cons
+      (car (car target-alist))
+      (reverse (cdr (car target-alist))))
+     (tq-cov-reverse-cdr-of-alist (cdr target-alist)))))
+
+(defun tq-cov-tuplize-cdr-of-alist (target-alist)
+  (if (not target-alist)
+      nil
+    (cons
+     (cons
+      (car (car target-alist))
+      (tq-cov-create-tuple-pairs (cdr (car target-alist))))
+     (tq-cov-reverse-cdr-of-alist (cdr target-alist)))))
+
+(defun tq-cov-create-stats-alist-from-buffer (buf)
+  (tq-cov-tuplize-cdr-of-alist (tq-cov-reverse-cdr-of-alist (tq-cov-parse-buffer buf))))
 
 (defun tq-find-dir-containing-file (file &optional dir)
   (or dir (setq dir default-directory))
