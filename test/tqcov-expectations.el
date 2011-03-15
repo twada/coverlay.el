@@ -135,6 +135,17 @@
        (assoc "/path/to/app/init.js" rev-alist)
        ))
 
+   (desc "tq-cov-tuplize-cdr-of-alist")
+   (expect '("Japanese" . (("hoge" "fuga") ("piyo" "moge")))
+     (setq words '(("Japanese" . ("hoge" "fuga" "piyo" "moge")) ("English" . ("foo" "bar" "baz" "moo"))))
+     (assoc "Japanese" (tq-cov-tuplize-cdr-of-alist words))
+     )
+   (expect '("English" . (("foo" "bar") ("baz" "moo")))
+     (setq words '(("Japanese" . ("hoge" "fuga" "piyo" "moge")) ("English" . ("foo" "bar" "baz" "moo"))))
+     (assoc "English" (tq-cov-tuplize-cdr-of-alist words))
+     )
+
+
    (desc "tq-cov-create-stats-alist-from-buffer")
    (expect '((4 6) (17 17) (22 24) (27 29) (37 38) (55 55) (62 62) (70 70) (76 76) (82 82))
      (setq stats-buf (tq-cov-test-setup "coverage_stats4.csv"))
@@ -155,7 +166,7 @@
      (setq stats-alist (tq-cov-create-stats-alist-from-buffer stats-buf))
      (cdr (assoc "/path/to/app/init.js" stats-alist)))
 
-   (desc "large data")
+   ;; (desc "large data")
    ;; (expect '((2 2) (80 80) (95 95) (203 204) (210 211) (217 222) (224 224) (226 226) (235 238) (245 245) (250 255) (290 290)  (300 303) (305 310) (360 360))
    ;;   (setq stats-buf (tq-cov-test-setup "coverage_stats_large.csv"))
    ;;   (setq stats-alist (tq-cov-create-stats-alist-from-buffer stats-buf))

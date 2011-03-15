@@ -86,7 +86,7 @@
      (cons
       (car (car target-alist))
       (tq-cov-create-tuple-pairs (cdr (car target-alist))))
-     (tq-cov-reverse-cdr-of-alist (cdr target-alist)))))
+     (tq-cov-tuplize-cdr-of-alist (cdr target-alist)))))
 
 (defun tq-cov-create-stats-alist-from-buffer (buf)
   (tq-cov-tuplize-cdr-of-alist (tq-cov-reverse-cdr-of-alist (tq-cov-parse-buffer buf))))
