@@ -1,5 +1,6 @@
 (defvar tq-cov-alist nil)
 (defvar tq-cov-data-file-name "coverage_stats.csv")
+(defvar tq-cov-untested-line-background-color "red4")
 
 (require 'csv-mode)
 
@@ -93,6 +94,7 @@
 
 (defun tq-find-dir-containing-file (file &optional dir)
   (or dir (setq dir default-directory))
+  (print (format "searching: %s" dir))
   (if (file-exists-p (concat dir file))
       dir
     (if (equal dir "/")
@@ -120,16 +122,50 @@
 (defun tq-cov-overlay-exists-p ()
   (tq-cov-overlay-exists-in-list-p (overlays-in (point-min) (point-max))))
 
-(defun tq-cov-overlay-current-buffer-with-command (cmd)
-  (print cmd)
+(defun tq-cov-overlay-current-buffer-with-list (tuple-list)
   (save-excursion
     (beginning-of-buffer)
-    (dolist (ovl (tq-map-overlays (read (shell-command-to-string cmd))))
+    (dolist (ovl (tq-map-overlays tuple-list))
       (progn
-        (overlay-put ovl 'face (cons 'background-color "red4"))
+        (overlay-put ovl 'face (cons 'background-color tq-cov-untested-line-background-color))
         (overlay-put ovl 'tqcov t)
         ))))
 
+
+(defun tq-cov-search-stats-file-path (buffer)
+  (concat (tq-find-dir-containing-file tq-cov-data-file-name
+                                       (file-name-directory (buffer-file-name buffer)))
+          tq-cov-data-file-name))
+
+(defun tq-cov-get-or-load-stats-alist (buffer)
+  (if (not tq-cov-alist)
+      (progn
+        (print "(not tq-cov-alist)")
+        (setq stats-buf (tq-cov-create-stats-buffer (tq-cov-search-stats-file-path buffer)))
+        (print "stats-buf created")
+        (setq tq-cov-alist (tq-cov-create-stats-alist-from-buffer stats-buf))
+        tq-cov-alist
+        )
+    (print "tq-cov-alist already loaded")
+    tq-cov-alist
+  ))
+
+(defun tq-cov-toggle-overlays (buffer)
+  (interactive (list (current-buffer)))
+  (setq statsbuf (tq-cov-get-or-load-stats-alist buffer))
+  (with-current-buffer buffer
+    (if (tq-cov-overlay-exists-p)
+        (tq-clear-cov-overlays)
+      (tq-cov-overlay-current-buffer-with-list
+       (cdr (assoc (expand-file-name (buffer-file-name buffer)) statsbuf))))))
+
+
+
+
+
+(defun tq-cov-overlay-current-buffer-with-command (cmd)
+  (print cmd)
+  (tq-cov-overlay-current-buffer-with-list (read (shell-command-to-string cmd))))
 
 (defun tq-toggle-cov-overlays (buffer)
   (interactive (list (current-buffer)))
