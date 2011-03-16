@@ -94,7 +94,7 @@
 
 (defun tq-find-dir-containing-file (file &optional dir)
   (or dir (setq dir default-directory))
-  (print (format "searching: %s" dir))
+  ;; (print (format "searching: %s" dir))
   (if (file-exists-p (concat dir file))
       dir
     (if (equal dir "/")
@@ -140,13 +140,10 @@
 (defun tq-cov-get-or-load-stats-alist (buffer)
   (if (not tq-cov-alist)
       (progn
-        (print "(not tq-cov-alist)")
         (setq stats-buf (tq-cov-create-stats-buffer (tq-cov-search-stats-file-path buffer)))
-        (print "stats-buf created")
         (setq tq-cov-alist (tq-cov-create-stats-alist-from-buffer stats-buf))
         tq-cov-alist
         )
-    (print "tq-cov-alist already loaded")
     tq-cov-alist
   ))
 
@@ -158,7 +155,6 @@
         (tq-clear-cov-overlays)
       (tq-cov-overlay-current-buffer-with-list
        (cdr (assoc (expand-file-name (buffer-file-name buffer)) statsbuf))))))
-
 
 
 
