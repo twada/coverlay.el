@@ -169,9 +169,9 @@
 
    (desc "large data")
    (expect '((2 2) (80 80) (95 95) (203 204) (210 211) (217 222) (224 224) (226 226) (235 238) (245 245) (250 255) (290 290)  (300 303) (305 310) (360 360))
-     (setq stats-buf (tq-cov-test-setup "coverage_stats_large.csv"))
+     (setq stats-buf (tq-cov-test-setup "coverage_stats5.csv"))
      (setq stats-alist (tq-cov-create-stats-alist-from-buffer stats-buf))
-     (cdr (assoc "/path/to/app/Util.js" stats-alist)))
+     (cdr (assoc "/path/to/app/util.js" stats-alist)))
 
 
    )
