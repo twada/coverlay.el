@@ -80,6 +80,11 @@
       (car (car target-alist))
       (tq-cov-create-tuple-pairs (cdr (car target-alist))))
      (tq-cov-tuplize-cdr-of-alist (cdr target-alist)))))
+;; (defun tq-cov-tuplize-cdr (target-list)
+;;   (setcdr target-list (tq-cov-create-tuple-pairs (cdr target-list))))
+;; (defun tq-cov-tuplize-cdr-of-alist (target-alist)
+;;   "convert '((Japanese . (hoge fuga piyo moge)) (English . (foo bar baz moo)))  to '((Japanese . ((hoge fuga) (piyo moge)) (English . ((foo bar) (baz moo))))"
+;;   (mapcar 'tq-cov-tuplize-cdr target-alist))
 
 (defun tq-cov-create-stats-alist-from-buffer (buf)
   (tq-cov-tuplize-cdr-of-alist (tq-cov-reverse-cdr-of-alist (tq-cov-parse-buffer buf))))
@@ -93,23 +98,33 @@
         nil
       (tq-find-dir-containing-file file (expand-file-name (concat dir "../"))))))
 
+;; (defun tq-map-overlays (tuple-list)
+;;   "make-overlay for each of a TUPLE(two line-numbers) LIST, recursively."
+;;   (if (not tuple-list)
+;;       nil
+;;     (cons
+;;      (make-overlay (point-at-bol (car (car tuple-list))) (point-at-eol (cadr (car tuple-list))))
+;;      (tq-map-overlays (cdr tuple-list)))))
+(defun tq-cov-make-overlay (tuple)
+  (make-overlay (point-at-bol (car tuple)) (point-at-eol (cadr tuple))))
 (defun tq-map-overlays (tuple-list)
-  "make-overlay for each of a TUPLE(two line-numbers) LIST, recursively."
-  (if (not tuple-list)
-      nil
-    (cons
-     (make-overlay (point-at-bol (car (car tuple-list))) (point-at-eol (cadr (car tuple-list))))
-     (tq-map-overlays (cdr tuple-list)))))
+  "make-overlay for each of a TUPLE(two line-numbers) LIST."
+  (mapcar 'tq-cov-make-overlay tuple-list))
 
 (defun tq-clear-cov-overlays ()
   (remove-overlays (point-min) (point-max) 'tqcov t))
 
+;; (defun tq-cov-overlay-exists-in-list-p (ovl-list)
+;;   (if (not ovl-list)
+;;       nil
+;;     (if (overlay-get (car ovl-list) 'tqcov)
+;;         t
+;;       (tq-cov-overlay-exists-in-list-p (cdr ovl-list)))))
 (defun tq-cov-overlay-exists-in-list-p (ovl-list)
-  (if (not ovl-list)
-      nil
-    (if (overlay-get (car ovl-list) 'tqcov)
-        t
-      (tq-cov-overlay-exists-in-list-p (cdr ovl-list)))))
+  (catch 'loop
+    (dolist (ovl ovl-list)
+      (if (overlay-get ovl 'tqcov) (throw 'loop t) nil)
+      nil)))
 
 (defun tq-cov-overlay-exists-p ()
   (tq-cov-overlay-exists-in-list-p (overlays-in (point-min) (point-max))))
