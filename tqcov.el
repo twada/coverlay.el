@@ -148,13 +148,16 @@
     tq-cov-alist
   ))
 
+(defun tq-cov-stats-tuples-for (buffer stats-alist)
+  (cdr (assoc (expand-file-name (buffer-file-name buffer)) stats-alist)))
+
 (defun tq-cov-toggle-overlays (buffer)
   (interactive (list (current-buffer)))
-  (setq statsbuf (tq-cov-get-or-load-stats-alist buffer))
+  (setq stats-alist (tq-cov-get-or-load-stats-alist buffer))
   (with-current-buffer buffer
     (if (tq-cov-overlay-exists-p)
         (tq-clear-cov-overlays)
       (tq-cov-overlay-current-buffer-with-list
-       (cdr (assoc (expand-file-name (buffer-file-name buffer)) statsbuf))))))
+       (tq-cov-stats-tuples-for buffer stats-alist)))))
 
 (provide 'tqcov)
