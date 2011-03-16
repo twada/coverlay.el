@@ -61,30 +61,39 @@
      (list (car even-list) (car (cdr even-list)))
      (tq-cov-create-tuple-pairs (nthcdr 2 even-list)))))
 
+;; (defun tq-cov-reverse-cdr-of-alist (target-alist)
+;;   "convert '((Japanese . (hoge fuga piyo)) (English . (foo bar baz))) to '((Japanese . (piyo fuga hoge)) (English . (baz bar foo)))"
+;;   (if (not target-alist)
+;;       nil
+;;     (cons
+;;      (cons
+;;       (car (car target-alist))
+;;       (reverse (cdr (car target-alist))))
+;;      (tq-cov-reverse-cdr-of-alist (cdr target-alist)))))
+(defun tq-cov-reverse-cdr (target-list)
+  (cons
+   (car target-list)
+   (reverse (cdr target-list))))
 (defun tq-cov-reverse-cdr-of-alist (target-alist)
   "convert '((Japanese . (hoge fuga piyo)) (English . (foo bar baz))) to '((Japanese . (piyo fuga hoge)) (English . (baz bar foo)))"
-  (if (not target-alist)
-      nil
-    (cons
-     (cons
-      (car (car target-alist))
-      (reverse (cdr (car target-alist))))
-     (tq-cov-reverse-cdr-of-alist (cdr target-alist)))))
+  (mapcar 'tq-cov-reverse-cdr target-alist))
 
-(defun tq-cov-tuplize-cdr-of-alist (target-alist)
-  "convert '((Japanese . (hoge fuga piyo moge)) (English . (foo bar baz moo)))  to '((Japanese . ((hoge fuga) (piyo moge)) (English . ((foo bar) (baz moo))))"
-  (if (not target-alist)
-      nil
-    (cons
-     (cons
-      (car (car target-alist))
-      (tq-cov-create-tuple-pairs (cdr (car target-alist))))
-     (tq-cov-tuplize-cdr-of-alist (cdr target-alist)))))
-;; (defun tq-cov-tuplize-cdr (target-list)
-;;   (setcdr target-list (tq-cov-create-tuple-pairs (cdr target-list))))
 ;; (defun tq-cov-tuplize-cdr-of-alist (target-alist)
 ;;   "convert '((Japanese . (hoge fuga piyo moge)) (English . (foo bar baz moo)))  to '((Japanese . ((hoge fuga) (piyo moge)) (English . ((foo bar) (baz moo))))"
-;;   (mapcar 'tq-cov-tuplize-cdr target-alist))
+;;   (if (not target-alist)
+;;       nil
+;;     (cons
+;;      (cons
+;;       (car (car target-alist))
+;;       (tq-cov-create-tuple-pairs (cdr (car target-alist))))
+;;      (tq-cov-tuplize-cdr-of-alist (cdr target-alist)))))
+(defun tq-cov-tuplize-cdr (target-list)
+  (progn
+    (setcdr target-list (tq-cov-create-tuple-pairs (cdr target-list)))
+    target-list))
+(defun tq-cov-tuplize-cdr-of-alist (target-alist)
+  "convert '((Japanese . (hoge fuga piyo moge)) (English . (foo bar baz moo)))  to '((Japanese . ((hoge fuga) (piyo moge)) (English . ((foo bar) (baz moo))))"
+  (mapcar 'tq-cov-tuplize-cdr target-alist))
 
 (defun tq-cov-create-stats-alist-from-buffer (buf)
   (tq-cov-tuplize-cdr-of-alist (tq-cov-reverse-cdr-of-alist (tq-cov-parse-buffer buf))))
