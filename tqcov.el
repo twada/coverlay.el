@@ -4,16 +4,6 @@
 
 (require 'csv-mode)
 
-(defun tq-cov-create-stats-buffer (data-file-path)
-  "get or create buffer filled with contents specified as data-file-path"
-  (with-current-buffer (get-buffer-create "*tqcov-stats*")
-    (csv-mode)
-    (erase-buffer)
-    (insert-file-contents data-file-path)
-    (beginning-of-buffer)
-    (current-buffer)
-    ))
-
 (defun tq-cov-current-csv-field-to-string ()
   "Convert current csv field to string. This function does not move point."
   (buffer-substring (point)
@@ -133,25 +123,35 @@
         (overlay-put ovl 'tqcov t)
         ))))
 
+(defun tq-cov-create-stats-buffer (data-file-path)
+  "get or create buffer filled with contents specified as data-file-path"
+  (with-current-buffer (get-buffer-create "*tqcov-stats*")
+    (csv-mode)
+    (erase-buffer)
+    (insert-file-contents data-file-path)
+    (beginning-of-buffer)
+    (current-buffer)
+    ))
+
 (defun tq-cov-search-stats-file-path (buffer)
-  (concat (tq-find-dir-containing-file tq-cov-data-file-name
-                                       (file-name-directory (buffer-file-name buffer)))
-          tq-cov-data-file-name))
+  (setq dir
+        (tq-find-dir-containing-file
+         tq-cov-data-file-name
+         (file-name-directory (buffer-file-name buffer))))
+  (concat dir tq-cov-data-file-name))
 
 (defun tq-cov-get-or-load-stats-alist (buffer)
-  (if (not tq-cov-alist)
-      (progn
-        (setq stats-buf (tq-cov-create-stats-buffer (tq-cov-search-stats-file-path buffer)))
-        (setq tq-cov-alist (tq-cov-create-stats-alist-from-buffer stats-buf))
-        tq-cov-alist
-        )
-    tq-cov-alist
-  ))
+  (if tq-cov-alist
+      tq-cov-alist
+    (setq stats-buf (tq-cov-create-stats-buffer (tq-cov-search-stats-file-path buffer)))
+    (setq tq-cov-alist (tq-cov-create-stats-alist-from-buffer stats-buf))
+    tq-cov-alist))
 
 (defun tq-cov-stats-tuples-for (buffer stats-alist)
   (cdr (assoc (expand-file-name (buffer-file-name buffer)) stats-alist)))
 
 (defun tq-cov-toggle-overlays (buffer)
+  "toggle coverage overlay"
   (interactive (list (current-buffer)))
   (setq stats-alist (tq-cov-get-or-load-stats-alist buffer))
   (with-current-buffer buffer
