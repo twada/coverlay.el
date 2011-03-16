@@ -53,13 +53,6 @@
   alist
   )
 
-;; (defun tq-cov-create-tuple-pairs (even-list)
-;;   "convert (foo bar baz hoge) to ((foo bar) (baz hoge))"
-;;   (if (not even-list)
-;;       nil
-;;     (cons
-;;      (list (car even-list) (car (cdr even-list)))
-;;      (tq-cov-create-tuple-pairs (nthcdr 2 even-list)))))
 (defun tq-cov-create-tuple-pairs (even-list)
   "convert (foo bar baz hoge) to ((foo bar) (baz hoge))"
   (setq result '())
@@ -68,36 +61,20 @@
     (setq even-list (nthcdr 2 even-list)))
   (nreverse result))
 
-;; (defun tq-cov-reverse-cdr-of-alist (target-alist)
-;;   "convert '((Japanese . (hoge fuga piyo)) (English . (foo bar baz))) to '((Japanese . (piyo fuga hoge)) (English . (baz bar foo)))"
-;;   (if (not target-alist)
-;;       nil
-;;     (cons
-;;      (cons
-;;       (car (car target-alist))
-;;       (reverse (cdr (car target-alist))))
-;;      (tq-cov-reverse-cdr-of-alist (cdr target-alist)))))
 (defun tq-cov-reverse-cdr (target-list)
   (cons
    (car target-list)
    (reverse (cdr target-list))))
+
 (defun tq-cov-reverse-cdr-of-alist (target-alist)
   "convert '((Japanese . (hoge fuga piyo)) (English . (foo bar baz))) to '((Japanese . (piyo fuga hoge)) (English . (baz bar foo)))"
   (mapcar 'tq-cov-reverse-cdr target-alist))
 
-;; (defun tq-cov-tuplize-cdr-of-alist (target-alist)
-;;   "convert '((Japanese . (hoge fuga piyo moge)) (English . (foo bar baz moo)))  to '((Japanese . ((hoge fuga) (piyo moge)) (English . ((foo bar) (baz moo))))"
-;;   (if (not target-alist)
-;;       nil
-;;     (cons
-;;      (cons
-;;       (car (car target-alist))
-;;       (tq-cov-create-tuple-pairs (cdr (car target-alist))))
-;;      (tq-cov-tuplize-cdr-of-alist (cdr target-alist)))))
 (defun tq-cov-tuplize-cdr (target-list)
   (progn
     (setcdr target-list (tq-cov-create-tuple-pairs (cdr target-list)))
     target-list))
+
 (defun tq-cov-tuplize-cdr-of-alist (target-alist)
   "convert '((Japanese . (hoge fuga piyo moge)) (English . (foo bar baz moo)))  to '((Japanese . ((hoge fuga) (piyo moge)) (English . ((foo bar) (baz moo))))"
   (mapcar 'tq-cov-tuplize-cdr target-alist))
@@ -114,15 +91,9 @@
         nil
       (tq-find-dir-containing-file file (expand-file-name (concat dir "../"))))))
 
-;; (defun tq-map-overlays (tuple-list)
-;;   "make-overlay for each of a TUPLE(two line-numbers) LIST, recursively."
-;;   (if (not tuple-list)
-;;       nil
-;;     (cons
-;;      (make-overlay (point-at-bol (car (car tuple-list))) (point-at-eol (cadr (car tuple-list))))
-;;      (tq-map-overlays (cdr tuple-list)))))
 (defun tq-cov-make-overlay (tuple)
   (make-overlay (point-at-bol (car tuple)) (point-at-eol (cadr tuple))))
+
 (defun tq-map-overlays (tuple-list)
   "make-overlay for each of a TUPLE(two line-numbers) LIST."
   (mapcar 'tq-cov-make-overlay tuple-list))
@@ -130,12 +101,6 @@
 (defun tq-clear-cov-overlays ()
   (remove-overlays (point-min) (point-max) 'tqcov t))
 
-;; (defun tq-cov-overlay-exists-in-list-p (ovl-list)
-;;   (if (not ovl-list)
-;;       nil
-;;     (if (overlay-get (car ovl-list) 'tqcov)
-;;         t
-;;       (tq-cov-overlay-exists-in-list-p (cdr ovl-list)))))
 (defun tq-cov-overlay-exists-in-list-p (ovl-list)
   (catch 'loop
     (dolist (ovl ovl-list)
