@@ -70,29 +70,29 @@
        (point)
        ))
 
-   (desc "tq-csv-current-field-to-string")
+   (desc "tq-cov-current-csv-field-to-string")
    (expect "/path/to/app/init.js"
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
-       (tq-csv-current-field-to-string)))
+       (tq-cov-current-csv-field-to-string)))
 
-   (desc "tq-csv-next-field-to-string")
+   (desc "tq-cov-next-csv-field-to-string")
    (expect 1
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
-       (string-to-number (tq-csv-next-field-to-string))))
+       (string-to-number (tq-cov-next-csv-field-to-string))))
    (expect 2
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
-       (tq-csv-next-field-to-string)
-       (string-to-number (tq-csv-next-field-to-string))))
+       (tq-cov-next-csv-field-to-string)
+       (string-to-number (tq-cov-next-csv-field-to-string))))
 
-   (desc "csv-lines-to-list")
+   (desc "tq-cov-current-csv-line-to-list")
    (expect '("/path/to/app/init.js" 1 2)
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
-       (tq-csv-line-to-list)))
+       (tq-cov-current-csv-line-to-list)))
    (expect '("/path/to/app/init.js" 3 1)
      (with-current-buffer (tq-cov-test-setup "coverage_stats.csv")
-       (tq-csv-line-to-list)
+       (tq-cov-current-csv-line-to-list)
        (forward-line)
-       (tq-csv-line-to-list)))
+       (tq-cov-current-csv-line-to-list)))
 
    (desc "tq-cov-parse-buffer")
    (expect '("/path/to/app/init.js" 6 4)
@@ -146,7 +146,6 @@
      (setq words '(("Japanese" . ("hoge" "fuga" "piyo" "moge")) ("English" . ("foo" "bar" "baz" "moo"))))
      (assoc "English" (tq-cov-tuplize-cdr-of-alist words))
      )
-
 
    (desc "tq-cov-create-stats-alist-from-buffer")
    (expect '((4 6) (17 17) (22 24) (27 29) (37 38) (55 55) (62 62) (70 70) (76 76) (82 82))
