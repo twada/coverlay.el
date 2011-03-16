@@ -1,6 +1,6 @@
 (require 'tqcov)
-(when (< max-lisp-eval-depth 1000)
-  (setq max-lisp-eval-depth 1000))
+;; (when (< max-lisp-eval-depth 1000)
+;;   (setq max-lisp-eval-depth 1000))
 
 (defun tq-cov-test-setup (data-file)
   (setq dir (file-name-directory (buffer-file-name (current-buffer))))

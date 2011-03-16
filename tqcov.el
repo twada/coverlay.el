@@ -53,13 +53,20 @@
   alist
   )
 
+;; (defun tq-cov-create-tuple-pairs (even-list)
+;;   "convert (foo bar baz hoge) to ((foo bar) (baz hoge))"
+;;   (if (not even-list)
+;;       nil
+;;     (cons
+;;      (list (car even-list) (car (cdr even-list)))
+;;      (tq-cov-create-tuple-pairs (nthcdr 2 even-list)))))
 (defun tq-cov-create-tuple-pairs (even-list)
   "convert (foo bar baz hoge) to ((foo bar) (baz hoge))"
-  (if (not even-list)
-      nil
-    (cons
-     (list (car even-list) (car (cdr even-list)))
-     (tq-cov-create-tuple-pairs (nthcdr 2 even-list)))))
+  (setq result '())
+  (while even-list
+    (setq result (cons (list (car even-list) (car (cdr even-list))) result))
+    (setq even-list (nthcdr 2 even-list)))
+  (nreverse result))
 
 ;; (defun tq-cov-reverse-cdr-of-alist (target-alist)
 ;;   "convert '((Japanese . (hoge fuga piyo)) (English . (foo bar baz))) to '((Japanese . (piyo fuga hoge)) (English . (baz bar foo)))"
