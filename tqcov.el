@@ -133,7 +133,6 @@
         (overlay-put ovl 'tqcov t)
         ))))
 
-
 (defun tq-cov-search-stats-file-path (buffer)
   (concat (tq-find-dir-containing-file tq-cov-data-file-name
                                        (file-name-directory (buffer-file-name buffer)))
@@ -157,26 +156,5 @@
         (tq-clear-cov-overlays)
       (tq-cov-overlay-current-buffer-with-list
        (cdr (assoc (expand-file-name (buffer-file-name buffer)) statsbuf))))))
-
-
-
-
-(defun tq-cov-overlay-current-buffer-with-command (cmd)
-  (print cmd)
-  (tq-cov-overlay-current-buffer-with-list (read (shell-command-to-string cmd))))
-
-(defun tq-toggle-cov-overlays (buffer)
-  (interactive (list (current-buffer)))
-  (with-current-buffer buffer
-    (if (tq-cov-overlay-exists-p)
-        (tq-clear-cov-overlays)
-      (tq-cov-overlay-current-buffer-with-command
-       (concat "ruby"
-               " "
-               (tq-find-dir-containing-file tq-cov-data-file-name
-                                            (file-name-directory (buffer-file-name buffer)))
-               "tqcov.rb"
-               " "
-               (expand-file-name (buffer-file-name buffer)))))))
 
 (provide 'tqcov)
