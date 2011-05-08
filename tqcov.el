@@ -1,5 +1,6 @@
 (defvar tq-cov-alist nil)
 (defvar tq-cov-data-file-name "coverage_stats.csv")
+(defvar tq-cov-buffer-name "*tqcov-stats*")
 (defvar tq-cov-untested-line-background-color "red4")
 
 (require 'csv-mode)
@@ -121,7 +122,7 @@
 
 (defun tq-cov-create-stats-buffer (data-file-path)
   "get or create buffer filled with contents specified as data-file-path"
-  (with-current-buffer (get-buffer-create "*tqcov-stats*")
+  (with-current-buffer (get-buffer-create tq-cov-buffer-name)
     (csv-mode)
     (erase-buffer)
     (insert-file-contents data-file-path)
