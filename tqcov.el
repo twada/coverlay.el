@@ -83,15 +83,6 @@
 (defun tq-cov-create-stats-alist-from-buffer (buf)
   (tq-cov-tuplize-cdr-of-alist (tq-cov-reverse-cdr-of-alist (tq-cov-parse-buffer buf))))
 
-(defun tq-find-dir-containing-file (file &optional dir)
-  (or dir (setq dir default-directory))
-  ;; (print (format "searching: %s" dir))
-  (if (file-exists-p (concat dir file))
-      dir
-    (if (equal dir "/")
-        nil
-      (tq-find-dir-containing-file file (expand-file-name (concat dir "../"))))))
-
 (defun tq-cov-make-overlay (tuple)
   (make-overlay (point-at-bol (car tuple)) (point-at-eol (cadr tuple))))
 
@@ -130,12 +121,23 @@
     (current-buffer)
     ))
 
-(defun tq-cov-search-stats-file-path (buffer)
-  (setq dir
+(defun tq-find-dir-containing-file (file &optional cov-project-dir)
+  (or cov-project-dir (setq cov-project-dir default-directory))
+  ;; (print (format "searching: %s" cov-project-dir))
+  (if (file-exists-p (concat cov-project-dir file))
+      cov-project-dir
+    (if (equal cov-project-dir "/")
+        nil
+      (tq-find-dir-containing-file file (expand-file-name (concat cov-project-dir "../"))))))
+
+(defun tq-cov-project-dir (buffer)
+  (setq cov-project-dir
         (tq-find-dir-containing-file
          tq-cov-data-file-name
-         (file-name-directory (buffer-file-name buffer))))
-  (concat dir tq-cov-data-file-name))
+         (file-name-directory (buffer-file-name buffer)))))
+
+(defun tq-cov-search-stats-file-path (buffer)
+  (concat (tq-cov-project-dir buffer) tq-cov-data-file-name))
 
 (defun tq-cov-get-or-load-stats-alist (buffer)
   (if tq-cov-alist
