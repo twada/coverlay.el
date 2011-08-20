@@ -40,7 +40,7 @@
   (with-current-buffer buf
     (while (not (eobp))
       (setq csv-cols (tq-cov-current-csv-line-to-list))
-      (setq filename (nth 0 csv-cols))
+      (setq filename (expand-file-name (nth 0 csv-cols)))
       (setq lineno (nth 1 csv-cols))
       (setq count (nth 2 csv-cols))
       (when (not (assoc filename alist))
