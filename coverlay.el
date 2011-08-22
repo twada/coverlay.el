@@ -2,6 +2,7 @@
 (defvar coverlay-data-file-name "coverage_stats.csv")
 (defvar coverlay-buffer-name "*coverlay-stats*")
 (defvar coverlay-untested-line-background-color "red4")
+(defvar coverlay-project-dir nil)
 
 (require 'csv-mode)
 
@@ -40,7 +41,7 @@
   (with-current-buffer buf
     (while (not (eobp))
       (setq csv-cols (coverlay-current-csv-line-to-list))
-      (setq filename (expand-file-name (nth 0 csv-cols)))
+      (setq filename (expand-file-name (nth 0 csv-cols) coverlay-project-dir))
       (setq lineno (nth 1 csv-cols))
       (setq count (nth 2 csv-cols))
       (when (not (assoc filename alist))
@@ -121,23 +122,23 @@
     (current-buffer)
     ))
 
-(defun coverlay-find-dir-containing-file (file &optional cov-project-dir)
-  (or cov-project-dir (setq cov-project-dir default-directory))
-  ;; (print (format "searching: %s" cov-project-dir))
-  (if (file-exists-p (concat cov-project-dir file))
-      cov-project-dir
-    (if (equal cov-project-dir "/")
+(defun coverlay-find-dir-containing-file (file &optional coverlay-project-dir)
+  (or coverlay-project-dir (setq coverlay-project-dir default-directory))
+  ;; (print (format "searching: %s" coverlay-project-dir))
+  (if (file-exists-p (concat coverlay-project-dir file))
+      coverlay-project-dir
+    (if (equal coverlay-project-dir "/")
         nil
-      (coverlay-find-dir-containing-file file (expand-file-name (concat cov-project-dir "../"))))))
+      (coverlay-find-dir-containing-file file (expand-file-name (concat coverlay-project-dir "../"))))))
 
-(defun coverlay-project-dir (buffer)
-  (setq cov-project-dir
+(defun coverlay-search-project-dir (buffer)
+  (setq coverlay-project-dir
         (coverlay-find-dir-containing-file
          coverlay-data-file-name
          (file-name-directory (buffer-file-name buffer)))))
 
 (defun coverlay-search-stats-file-path (buffer)
-  (concat (coverlay-project-dir buffer) coverlay-data-file-name))
+  (concat (coverlay-search-project-dir buffer) coverlay-data-file-name))
 
 (defun coverlay-get-or-load-stats-alist (buffer)
   (if coverlay-alist
