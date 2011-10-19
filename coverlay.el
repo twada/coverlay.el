@@ -193,6 +193,12 @@
 (defun coverlay-stats-tuples-for (buffer stats-alist)
   (cdr (assoc (expand-file-name (buffer-file-name buffer)) stats-alist)))
 
+(defun coverlay-reload-stats-alist (buffer)
+  "reload coverage data"
+  (interactive (list (current-buffer)))
+  (setq stats-buf (coverlay-create-stats-buffer (coverlay-search-stats-file-path buffer)))
+  (setq coverlay-alist (coverlay-create-stats-alist-from-buffer stats-buf)))
+
 (defun coverlay-toggle-overlays (buffer)
   "toggle coverage overlay"
   (interactive (list (current-buffer)))
