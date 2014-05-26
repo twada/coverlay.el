@@ -65,6 +65,10 @@
 (defun coverlay-end-of-recordp (line)
   (coverlay-string-starts-with line "end_of_record"))
 
+(defun coverlay-extract-source-file (line) 
+  (substring line (+ (string-match "\:" line) 1)))
+
+
 (defun coverlay-current-csv-field-to-string ()
   "Convert current csv field to string. This function does not move point."
   (buffer-substring (point)

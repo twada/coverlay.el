@@ -26,5 +26,10 @@
   (expect t
     (coverlay-end-of-recordp "end_of_record"))
 
+  (desc "extract source file path")
+  (expect "/path/to/target.js"
+    (coverlay-extract-source-file "SF:/path/to/target.js"))
+  (expect "/path/to/another.js"
+    (coverlay-extract-source-file "SF:/path/to/another.js"))
 
 )
