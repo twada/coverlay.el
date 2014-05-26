@@ -1,5 +1,9 @@
 (require 'coverlay)
 
+(defun coverlay-test-setup (data-file)
+  (setq dir (file-name-directory (buffer-file-name (current-buffer))))
+  (coverlay-create-stats-buffer (concat dir "/fixtures/" data-file)))
+
 (expectations
 
   (desc "detect source file line")
@@ -38,5 +42,10 @@
   (expect '(21 0)
     (coverlay-extract-data-list "DA:21,0"))
 
+  (desc "coverlay-parse-buffer")
+  (expect '("/path/to/target.js" 25 25 21 21)
+    (with-current-buffer (coverlay-test-setup "tiny.lcov")
+      (assoc "/path/to/target.js" (coverlay-parse-buffer (current-buffer)))
+      ))
 
 )

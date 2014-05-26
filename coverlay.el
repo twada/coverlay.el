@@ -74,6 +74,11 @@
 (defun coverlay-extract-data-list (line) 
   (mapcar 'string-to-number (split-string (coverlay-extract-rhs line) ",")))
 
+(defun coverlay-current-line ()
+  (buffer-substring (point)
+                    (save-excursion
+                      (end-of-line)
+                      (point))))
 
 (defun coverlay-current-csv-field-to-string ()
   "Convert current csv field to string. This function does not move point."
@@ -107,18 +112,22 @@
 (defun coverlay-parse-buffer (buf)
   "Parse buffer to alist. car of each element is filename, cdr is segment of lines."
   (setq alist nil)
+  (setq filename nil)
   (with-current-buffer buf
     (while (not (eobp))
-      (setq csv-cols (coverlay-current-csv-line-to-list))
-      (setq filename (expand-file-name (nth 0 csv-cols) coverlay-project-dir))
-      (setq lineno (nth 1 csv-cols))
-      (setq count (nth 2 csv-cols))
-      (when (not (assoc filename alist))
-        ;; (print (format "segments for %s does not exist" filename))
-        (setq alist (cons (list filename) alist)))
-      (when (= count 0)
-        ;; (print (format "count %d is zero" count))
-        (coverlay-handle-uncovered-line alist filename lineno))
+      (setq current-line (coverlay-current-line))
+      (when (coverlay-source-filep current-line)
+        (setq filename (coverlay-extract-source-file current-line))
+        (when (not (assoc filename alist))
+          ;; (print (format "segments for %s does not exist" filename))
+          (setq alist (cons (list filename) alist))))
+      (when (coverlay-data-linep current-line)
+        (setq cols (coverlay-extract-data-list current-line))
+        (setq lineno (nth 0 cols))
+        (setq count (nth 1 cols))
+        (when (= count 0)
+          ;; (print (format "count %d is zero" count))
+          (coverlay-handle-uncovered-line alist filename lineno)))
       (forward-line 1))
     )
   alist
