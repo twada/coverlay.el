@@ -47,5 +47,13 @@
     (with-current-buffer (coverlay-test-setup "tiny.lcov")
       (assoc "/path/to/target.js" (coverlay-parse-buffer (current-buffer)))
       ))
+  (expect '("/path/to/target.js" 25 25 21 21)
+    (with-current-buffer (coverlay-test-setup "twofiles.lcov")
+      (assoc "/path/to/target.js" (coverlay-parse-buffer (current-buffer)))
+      ))
+  (expect '("/path/to/another.js" 23 22)
+    (with-current-buffer (coverlay-test-setup "twofiles.lcov")
+      (assoc "/path/to/another.js" (coverlay-parse-buffer (current-buffer)))
+      ))
 
 )
