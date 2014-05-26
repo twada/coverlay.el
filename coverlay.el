@@ -65,8 +65,14 @@
 (defun coverlay-end-of-recordp (line)
   (coverlay-string-starts-with line "end_of_record"))
 
-(defun coverlay-extract-source-file (line) 
+(defun coverlay-extract-rhs (line) 
   (substring line (+ (string-match "\:" line) 1)))
+
+(defun coverlay-extract-source-file (line) 
+  (coverlay-extract-rhs line))
+
+(defun coverlay-extract-data-list (line) 
+  (mapcar 'string-to-number (split-string (coverlay-extract-rhs line) ",")))
 
 
 (defun coverlay-current-csv-field-to-string ()

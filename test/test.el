@@ -32,4 +32,11 @@
   (expect "/path/to/another.js"
     (coverlay-extract-source-file "SF:/path/to/another.js"))
 
+  (desc "extract data")
+  (expect '(15 1)
+    (coverlay-extract-data-list "DA:15,1"))
+  (expect '(21 0)
+    (coverlay-extract-data-list "DA:21,0"))
+
+
 )
