@@ -59,6 +59,9 @@
 (defun coverlay-source-filep (line)
   (coverlay-string-starts-with line "SF:"))
 
+(defun coverlay-data-linep (line)
+  (coverlay-string-starts-with line "DA:"))
+
 (defun coverlay-current-csv-field-to-string ()
   "Convert current csv field to string. This function does not move point."
   (buffer-substring (point)
