@@ -35,19 +35,16 @@
 ;; Dependencies
 ;; ------------
 ;;
-;; This overlay depends on `csv-mode`.
-;; And the expectations depend on `el-expectataions.el`.
+;; tests(expectations) are depend on `el-expectataions.el`.
 ;; 
 ;;
 ;;; Code:
 
 (defvar coverlay-alist nil)
-(defvar coverlay-data-file-name "coverage_stats.csv")
+(defvar coverlay-data-file-name "coverage.lcov")
 (defvar coverlay-buffer-name "*coverlay-stats*")
 (defvar coverlay-untested-line-background-color "red4")
 (defvar coverlay-project-dir nil)
-
-(require 'csv-mode)
 
 ;; http://www.emacswiki.org/emacs/ElispCookbook#toc4
 (defun coverlay-string-starts-with (s begins)
@@ -79,26 +76,6 @@
                     (save-excursion
                       (end-of-line)
                       (point))))
-
-(defun coverlay-current-csv-field-to-string ()
-  "Convert current csv field to string. This function does not move point."
-  (buffer-substring (point)
-                    (save-excursion
-                      (forward-sexp 1)
-                      (point))))
-
-(defun coverlay-next-csv-field-to-string ()
-  "Convert next csv field to string. This function DOES move point."
-  (csv-forward-field 1)
-  (forward-char 1)
-  (coverlay-current-csv-field-to-string))
-
-(defun coverlay-current-csv-line-to-list ()
-  "Convert current coverage stats line to list (string int int). This function DOES move point."
-  (list
-   (coverlay-current-csv-field-to-string)
-   (string-to-number (coverlay-next-csv-field-to-string))
-   (string-to-number (coverlay-next-csv-field-to-string))))
 
 (defun coverlay-handle-uncovered-line (alist filename lineno)
   (setq file-segments (assoc filename alist))
@@ -193,7 +170,6 @@
 (defun coverlay-create-stats-buffer (data-file-path)
   "get or create buffer filled with contents specified as data-file-path"
   (with-current-buffer (get-buffer-create coverlay-buffer-name)
-    (csv-mode)
     (erase-buffer)
     (insert-file-contents data-file-path)
     (beginning-of-buffer)
@@ -202,7 +178,7 @@
 
 (defun coverlay-find-dir-containing-file (file &optional coverlay-project-dir)
   (or coverlay-project-dir (setq coverlay-project-dir default-directory))
-  ;; (print (format "searching: %s" coverlay-project-dir))
+  ;; (print (format "searching: %s %s" coverlay-project-dir file))
   (if (file-exists-p (concat coverlay-project-dir file))
       coverlay-project-dir
     (if (equal coverlay-project-dir "/")
