@@ -62,6 +62,9 @@
 (defun coverlay-data-linep (line)
   (coverlay-string-starts-with line "DA:"))
 
+(defun coverlay-end-of-recordp (line)
+  (coverlay-string-starts-with line "end_of_record"))
+
 (defun coverlay-current-csv-field-to-string ()
   "Convert current csv field to string. This function does not move point."
   (buffer-substring (point)

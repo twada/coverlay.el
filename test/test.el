@@ -18,5 +18,13 @@
   (expect nil
     (coverlay-data-linep "end_of_record"))
 
+  (desc "detect end of record")
+  (expect nil
+    (coverlay-end-of-recordp "SF:/path/to/target.js"))
+  (expect nil
+    (coverlay-end-of-recordp "DA:15,1"))
+  (expect t
+    (coverlay-end-of-recordp "end_of_record"))
+
 
 )
