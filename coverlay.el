@@ -49,6 +49,16 @@
 
 (require 'csv-mode)
 
+;; http://www.emacswiki.org/emacs/ElispCookbook#toc4
+(defun coverlay-string-starts-with (s begins)
+  "Return non-nil if string S starts with BEGINS."
+  (cond ((>= (length s) (length begins))
+         (string-equal (substring s 0 (length begins)) begins))
+        (t nil)))
+
+(defun coverlay-source-filep (line)
+  (coverlay-string-starts-with line "SF:"))
+
 (defun coverlay-current-csv-field-to-string ()
   "Convert current csv field to string. This function does not move point."
   (buffer-substring (point)
