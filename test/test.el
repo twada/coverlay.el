@@ -6,6 +6,8 @@
 
 (expectations
 
+  ;; line detection & extraction
+
   (desc "detect source file line")
   (expect t
     (coverlay-source-filep "SF:/path/to/target.js"))
@@ -41,6 +43,8 @@
     (coverlay-extract-data-list "DA:15,1"))
   (expect '(21 0)
     (coverlay-extract-data-list "DA:21,0"))
+
+  ;; file parsing
 
   (desc "coverlay-parse-buffer")
   (expect '("/path/to/target.js" 25 25 21 21)
@@ -79,5 +83,54 @@
     (setq stats-buf (coverlay-test-setup "power-assert-formatter.lcov"))
     (setq stats-alist (coverlay-create-stats-alist-from-buffer stats-buf))
     (cdr (assoc "/path/to/power-assert-formatter/lib/power-assert-formatter.js" stats-alist)))
+
+  ;; tuple tests
+
+  (desc "coverlay-create-tuple-pairs")
+  (expect '(("foo" "bar") ("baz" "hoge"))
+    (coverlay-create-tuple-pairs '("foo" "bar" "baz" "hoge")))
+  (expect '(("foo" "bar") ("baz" "hoge") ("fuga" nil))
+    (coverlay-create-tuple-pairs '("foo" "bar" "baz" "hoge" "fuga")))
+
+  (desc "coverlay-reverse-cdr-of-alist")
+  (expect '("Japanese" . ("piyo" "fuga" "hoge"))
+    (setq words '(("Japanese" . ("hoge" "fuga" "piyo")) ("English" . ("foo" "bar" "baz"))))
+    (assoc "Japanese" (coverlay-reverse-cdr-of-alist words)))
+  (expect '("English" . ("baz" "bar" "foo"))
+    (setq words '(("Japanese" . ("hoge" "fuga" "piyo")) ("English" . ("foo" "bar" "baz"))))
+    (assoc "English" (coverlay-reverse-cdr-of-alist words)))
+
+  (desc "coverlay-tuplize-cdr-of-alist")
+  (expect '("Japanese" . (("hoge" "fuga") ("piyo" "moge")))
+    (setq words '(("Japanese" . ("hoge" "fuga" "piyo" "moge")) ("English" . ("foo" "bar" "baz" "moo"))))
+    (assoc "Japanese" (coverlay-tuplize-cdr-of-alist words)))
+  (expect '("English" . (("foo" "bar") ("baz" "moo")))
+    (setq words '(("Japanese" . ("hoge" "fuga" "piyo" "moge")) ("English" . ("foo" "bar" "baz" "moo"))))
+    (assoc "English" (coverlay-tuplize-cdr-of-alist words)))
+
+  ;; learning tests
+
+  (desc "quoted list learning")
+  (expect '(3 5)
+    '(3 5))
+  (expect '((3 5) (8 12))
+    '((3 5) (8 12)))
+
+  (desc "alist learning")
+  (expect '("foo" . "bar")
+    (setq words '(("hoge" . "fuga") ("foo" . "bar") ("toto" . "titi")))
+    (assoc "foo" words))
+  (expect nil
+    (setq words '(("hoge" . "fuga") ("foo" . "bar") ("toto" . "titi")))
+    (assoc "BOO" words))
+  (expect '("hoge")
+    (setq words '(("hoge")))
+    (assoc "hoge" words))
+  (expect nil
+    (setq words '(("hoge")))
+    (cdr (assoc "hoge" words)))
+  (expect '("fuga" "piyo" "moge")
+    (setq words '(("hoge" "fuga" "piyo" "moge")))
+    (cdr (assoc "hoge" words)))
 
 )
