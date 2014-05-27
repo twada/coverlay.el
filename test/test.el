@@ -10,27 +10,27 @@
 
   (desc "detect source file line")
   (expect t
-    (coverlay-source-filep "SF:/path/to/target.js"))
+    (coverlay-source-file-p "SF:/path/to/target.js"))
   (expect nil
-    (coverlay-source-filep "DA:15,1"))
+    (coverlay-source-file-p "DA:15,1"))
   (expect nil
-    (coverlay-source-filep "end_of_record"))
+    (coverlay-source-file-p "end_of_record"))
 
   (desc "detect data line")
   (expect nil
-    (coverlay-data-linep "SF:/path/to/target.js"))
+    (coverlay-data-line-p "SF:/path/to/target.js"))
   (expect t
-    (coverlay-data-linep "DA:15,1"))
+    (coverlay-data-line-p "DA:15,1"))
   (expect nil
-    (coverlay-data-linep "end_of_record"))
+    (coverlay-data-line-p "end_of_record"))
 
   (desc "detect end of record")
   (expect nil
-    (coverlay-end-of-recordp "SF:/path/to/target.js"))
+    (coverlay-end-of-record-p "SF:/path/to/target.js"))
   (expect nil
-    (coverlay-end-of-recordp "DA:15,1"))
+    (coverlay-end-of-record-p "DA:15,1"))
   (expect t
-    (coverlay-end-of-recordp "end_of_record"))
+    (coverlay-end-of-record-p "end_of_record"))
 
   (desc "extract source file path")
   (expect "/path/to/target.js"
