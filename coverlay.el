@@ -73,8 +73,7 @@
     (erase-buffer)
     (insert-file-contents data-file-path)
     (beginning-of-buffer)
-    (current-buffer)
-    ))
+    (current-buffer)))
 
 (defun coverlay-create-stats-alist-from-buffer (buf)
   (coverlay-tuplize-cdr-of-alist (coverlay-reverse-cdr-of-alist (coverlay-parse-buffer buf))))
@@ -125,9 +124,7 @@
           ;; (print (format "count %d is zero" count))
           (coverlay-handle-uncovered-line alist filename lineno)))
       (forward-line 1))
-    )
-  alist
-  )
+    alist))
 
 (defun coverlay-handle-uncovered-line (alist filename lineno)
   (setq file-segments (assoc filename alist))
