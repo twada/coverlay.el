@@ -1,4 +1,4 @@
-;;; coverlay.el --- Code Coverage Overlay for Emacs
+;;; coverlay.el --- Test coverage overlay for Emacs
 
 ;; Copyright (C) 2011-2014 Takuto Wada
 
@@ -43,7 +43,7 @@
 ;; Customizable variables
 
 (defgroup coverlay nil
-  "Code Coverage Overlay for Emacs."
+  "Test coverage overlay for Emacs."
   :group 'tools
   :prefix "coverlay:")
 

@@ -1,7 +1,7 @@
 coverlay.el
 ================================
 
-Code Coverage Overlay for Emacs
+Test coverage overlay for Emacs
 
 
 DESCRIPTION
