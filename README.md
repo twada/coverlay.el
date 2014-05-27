@@ -6,11 +6,11 @@ Test coverage overlay for Emacs
 
 DESCRIPTION
 ---------------------------------------
-`coverlay.el` is an emacs-lisp to highlight lines not covered by tests.
+`coverlay.el` is an emacs plugin to highlight untested lines.
 
 ![coverlay demo](https://raw.githubusercontent.com/twada/coverlay.el/master/img/coverlay_demo.png "coverlay demo")
 
-`coverlay.el` supports [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php) that is widely used. (ex. [Coveralls](https://coveralls.io/))
+`coverlay.el` supports widely used [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php). (ex. [Coveralls](https://coveralls.io/))
 
 Please note that `coverlay.el` is a beta version product. Pull-requests, issue reports and patches are always welcomed.
 
