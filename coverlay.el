@@ -35,39 +35,47 @@
 ;; Dependencies
 ;; ------------
 ;;
-;; This overlay depends on `csv-mode`.
-;; And the expectations depend on `el-expectataions.el`.
+;; tests(expectations) are depend on `el-expectataions.el`.
 ;; 
 ;;
 ;;; Code:
 
 (defvar coverlay-alist nil)
-(defvar coverlay-data-file-name "coverage_stats.csv")
+(defvar coverlay-data-file-name "coverage.lcov")
 (defvar coverlay-buffer-name "*coverlay-stats*")
 (defvar coverlay-untested-line-background-color "red4")
 (defvar coverlay-project-dir nil)
 
-(require 'csv-mode)
+;; http://www.emacswiki.org/emacs/ElispCookbook#toc4
+(defun coverlay-string-starts-with (s begins)
+  "Return non-nil if string S starts with BEGINS."
+  (cond ((>= (length s) (length begins))
+         (string-equal (substring s 0 (length begins)) begins))
+        (t nil)))
 
-(defun coverlay-current-csv-field-to-string ()
-  "Convert current csv field to string. This function does not move point."
+(defun coverlay-source-filep (line)
+  (coverlay-string-starts-with line "SF:"))
+
+(defun coverlay-data-linep (line)
+  (coverlay-string-starts-with line "DA:"))
+
+(defun coverlay-end-of-recordp (line)
+  (coverlay-string-starts-with line "end_of_record"))
+
+(defun coverlay-extract-rhs (line) 
+  (substring line (+ (string-match "\:" line) 1)))
+
+(defun coverlay-extract-source-file (line) 
+  (coverlay-extract-rhs line))
+
+(defun coverlay-extract-data-list (line) 
+  (mapcar 'string-to-number (split-string (coverlay-extract-rhs line) ",")))
+
+(defun coverlay-current-line ()
   (buffer-substring (point)
                     (save-excursion
-                      (forward-sexp 1)
+                      (end-of-line)
                       (point))))
-
-(defun coverlay-next-csv-field-to-string ()
-  "Convert next csv field to string. This function DOES move point."
-  (csv-forward-field 1)
-  (forward-char 1)
-  (coverlay-current-csv-field-to-string))
-
-(defun coverlay-current-csv-line-to-list ()
-  "Convert current coverage stats line to list (string int int). This function DOES move point."
-  (list
-   (coverlay-current-csv-field-to-string)
-   (string-to-number (coverlay-next-csv-field-to-string))
-   (string-to-number (coverlay-next-csv-field-to-string))))
 
 (defun coverlay-handle-uncovered-line (alist filename lineno)
   (setq file-segments (assoc filename alist))
@@ -81,18 +89,22 @@
 (defun coverlay-parse-buffer (buf)
   "Parse buffer to alist. car of each element is filename, cdr is segment of lines."
   (setq alist nil)
+  (setq filename nil)
   (with-current-buffer buf
     (while (not (eobp))
-      (setq csv-cols (coverlay-current-csv-line-to-list))
-      (setq filename (expand-file-name (nth 0 csv-cols) coverlay-project-dir))
-      (setq lineno (nth 1 csv-cols))
-      (setq count (nth 2 csv-cols))
-      (when (not (assoc filename alist))
-        ;; (print (format "segments for %s does not exist" filename))
-        (setq alist (cons (list filename) alist)))
-      (when (= count 0)
-        ;; (print (format "count %d is zero" count))
-        (coverlay-handle-uncovered-line alist filename lineno))
+      (setq current-line (coverlay-current-line))
+      (when (coverlay-source-filep current-line)
+        (setq filename (coverlay-extract-source-file current-line))
+        (when (not (assoc filename alist))
+          ;; (print (format "segments for %s does not exist" filename))
+          (setq alist (cons (list filename) alist))))
+      (when (coverlay-data-linep current-line)
+        (setq cols (coverlay-extract-data-list current-line))
+        (setq lineno (nth 0 cols))
+        (setq count (nth 1 cols))
+        (when (= count 0)
+          ;; (print (format "count %d is zero" count))
+          (coverlay-handle-uncovered-line alist filename lineno)))
       (forward-line 1))
     )
   alist
@@ -158,7 +170,6 @@
 (defun coverlay-create-stats-buffer (data-file-path)
   "get or create buffer filled with contents specified as data-file-path"
   (with-current-buffer (get-buffer-create coverlay-buffer-name)
-    (csv-mode)
     (erase-buffer)
     (insert-file-contents data-file-path)
     (beginning-of-buffer)
@@ -167,7 +178,7 @@
 
 (defun coverlay-find-dir-containing-file (file &optional coverlay-project-dir)
   (or coverlay-project-dir (setq coverlay-project-dir default-directory))
-  ;; (print (format "searching: %s" coverlay-project-dir))
+  ;; (print (format "searching: %s %s" coverlay-project-dir file))
   (if (file-exists-p (concat coverlay-project-dir file))
       coverlay-project-dir
     (if (equal coverlay-project-dir "/")
