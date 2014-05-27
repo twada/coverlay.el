@@ -8,7 +8,7 @@ DESCRIPTION
 ---------------------------------------
 `coverlay.el` is a emacs-lisp to highlight lines not covered by tests.
 
-`coverlay.el` supports lcov format that is widely used among CI services. (ex. Coveralls)
+`coverlay.el` supports [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php) that is widely used among CI services. (ex. [Coveralls](https://coveralls.io/))
 
 ![coverlay demo](https://raw.githubusercontent.com/twada/coverlay.el/master/img/coverlay_demo.png "coverlay demo")
 
@@ -22,8 +22,9 @@ HOW TO USE
 
 Load coverlay.el in your .emacs
 
-     (require 'coverlay)
-
+```lisp
+(require 'coverlay)
+```
 
 ### use
 
