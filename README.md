@@ -10,7 +10,7 @@ DESCRIPTION
 
 ![coverlay demo](https://raw.githubusercontent.com/twada/coverlay.el/master/img/coverlay_demo.png "coverlay demo")
 
-`coverlay.el` supports widely used [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php). (ex. [Coveralls](https://coveralls.io/))
+`coverlay.el` supports widely used [LCOV format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php). (ex. [Coveralls](https://coveralls.io/))
 
 Please note that `coverlay.el` is a beta version product. Pull-requests, issue reports and patches are always welcomed.
 
@@ -28,11 +28,11 @@ Load coverlay.el in your .emacs
 
 ### use
 
-Load lcov file into coverlay buffer.
+First, load lcov file in your project into coverlay buffer.
 
     M-x coverlay-load-file /path/to/lcov-file
 
-Toggle overlay.
+Open target code then toggle overlay.
 
     M-x coverlay-toggle-overlays
 
