@@ -6,11 +6,11 @@ Test coverage overlay for Emacs
 
 DESCRIPTION
 ---------------------------------------
-`coverlay.el` is a emacs-lisp to highlight lines not covered by tests.
-
-`coverlay.el` supports [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php) that is widely used among CI services. (ex. [Coveralls](https://coveralls.io/))
+`coverlay.el` is an emacs-lisp to highlight lines not covered by tests.
 
 ![coverlay demo](https://raw.githubusercontent.com/twada/coverlay.el/master/img/coverlay_demo.png "coverlay demo")
+
+`coverlay.el` supports [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php) that is widely used. (ex. [Coveralls](https://coveralls.io/))
 
 Please note that `coverlay.el` is a beta version product. Pull-requests, issue reports and patches are always welcomed.
 
@@ -28,11 +28,11 @@ Load coverlay.el in your .emacs
 
 ### use
 
-Load lcov file into coverlay buffer
+Load lcov file into coverlay buffer.
 
     M-x coverlay-load-file /path/to/lcov-file
 
-Toggle overlay
+Toggle overlay.
 
     M-x coverlay-toggle-overlays
 
