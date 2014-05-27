@@ -10,7 +10,7 @@ DESCRIPTION
 
 `coverlay.el` supports lcov format that is widely used among CI services. (ex. Coveralls)
 
-[coverlay demo](https://raw.githubusercontent.com/twada/coverlay.el/master/img/coverlay_demo.png "coverlay demo")
+![coverlay demo](https://raw.githubusercontent.com/twada/coverlay.el/master/img/coverlay_demo.png "coverlay demo")
 
 Please note that `coverlay.el` is a beta version product. Pull-requests, issue reports and patches are always welcomed.
 
