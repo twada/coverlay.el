@@ -23,10 +23,8 @@
 ;;; Commentary:
 ;; ------------
 ;;
-;; add this to your .emacs or init.el
+;; add this to your .emacs or init.el and load it
 ;; (add-to-list 'load-path "~/.emacs.d/path/to/coverlay/dir")
-;;
-;; and load it
 ;; (require 'coverlay)
 ;;
 ;; then keymap it if you want
@@ -41,10 +39,8 @@
 ;;; Code:
 
 (defvar coverlay-alist nil)
-(defvar coverlay-data-file-name "coverage.lcov")
 (defvar coverlay-buffer-name "*coverlay-stats*")
 (defvar coverlay-untested-line-background-color "red4")
-(defvar coverlay-project-dir nil)
 
 ;; http://www.emacswiki.org/emacs/ElispCookbook#toc4
 (defun coverlay-string-starts-with (s begins)
@@ -167,6 +163,9 @@
         (overlay-put ovl 'coverlay t)
         ))))
 
+(defun coverlay-stats-tuples-for (buffer stats-alist)
+  (cdr (assoc (expand-file-name (buffer-file-name buffer)) stats-alist)))
+
 (defun coverlay-create-stats-buffer (data-file-path)
   "get or create buffer filled with contents specified as data-file-path"
   (with-current-buffer (get-buffer-create coverlay-buffer-name)
@@ -176,48 +175,21 @@
     (current-buffer)
     ))
 
-(defun coverlay-find-dir-containing-file (file &optional coverlay-project-dir)
-  (or coverlay-project-dir (setq coverlay-project-dir default-directory))
-  ;; (print (format "searching: %s %s" coverlay-project-dir file))
-  (if (file-exists-p (concat coverlay-project-dir file))
-      coverlay-project-dir
-    (if (equal coverlay-project-dir "/")
-        nil
-      (coverlay-find-dir-containing-file file (expand-file-name (concat coverlay-project-dir "../"))))))
-
-(defun coverlay-search-project-dir (buffer)
-  (setq coverlay-project-dir
-        (coverlay-find-dir-containing-file
-         coverlay-data-file-name
-         (file-name-directory (buffer-file-name buffer)))))
-
-(defun coverlay-search-stats-file-path (buffer)
-  (concat (coverlay-search-project-dir buffer) coverlay-data-file-name))
-
-(defun coverlay-get-or-load-stats-alist (buffer)
-  (if coverlay-alist
-      coverlay-alist
-    (setq stats-buf (coverlay-create-stats-buffer (coverlay-search-stats-file-path buffer)))
-    (setq coverlay-alist (coverlay-create-stats-alist-from-buffer stats-buf))
-    coverlay-alist))
-
-(defun coverlay-stats-tuples-for (buffer stats-alist)
-  (cdr (assoc (expand-file-name (buffer-file-name buffer)) stats-alist)))
-
-(defun coverlay-reload-stats-alist (buffer)
-  "reload coverage data"
-  (interactive (list (current-buffer)))
-  (setq stats-buf (coverlay-create-stats-buffer (coverlay-search-stats-file-path buffer)))
+(defun coverlay-load-file (filepath)
+  "(re)load coverage data"
+  (interactive (list (read-file-name "lcov file:")) )
+  (setq stats-buf (coverlay-create-stats-buffer filepath))
   (setq coverlay-alist (coverlay-create-stats-alist-from-buffer stats-buf)))
 
 (defun coverlay-toggle-overlays (buffer)
   "toggle coverage overlay"
   (interactive (list (current-buffer)))
-  (setq stats-alist (coverlay-get-or-load-stats-alist buffer))
-  (with-current-buffer buffer
-    (if (coverlay-overlay-exists-p)
-        (coverlay-clear-cov-overlays)
-      (coverlay-overlay-current-buffer-with-list
-       (coverlay-stats-tuples-for buffer stats-alist)))))
+  (if (not coverlay-alist)
+      (message "coverlay.el: Coverage data not found. Please use `coverlay-load-file` to load them.")
+    (with-current-buffer buffer
+      (if (coverlay-overlay-exists-p)
+          (coverlay-clear-cov-overlays)
+        (coverlay-overlay-current-buffer-with-list
+         (coverlay-stats-tuples-for buffer coverlay-alist))))))
 
 (provide 'coverlay)
