@@ -1,11 +1,11 @@
 ;;; coverlay.el --- Code Coverage Overlay for Emacs
 
-;; Copyright (C) 2011 Takuto Wada
+;; Copyright (C) 2011-2014 Takuto Wada
 
 ;; Author: Takuto Wada <takuto.wada at gmail com>
 ;; Keywords: coverage, overlay
-;; Homepage: http://github.com/twada/coverlay.el
-;; Version: 0.1
+;; Homepage: https://github.com/twada/coverlay.el
+;; Version: 0.2
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -23,37 +23,53 @@
 ;;; Commentary:
 ;; ------------
 ;;
-;; add this to your .emacs or init.el and load it
-;; (add-to-list 'load-path "~/.emacs.d/path/to/coverlay/dir")
-;; (require 'coverlay)
+;; Load coverlay.el in your .emacs
 ;;
-;; then keymap it if you want
-;;  (define-key js2-mode-map "\C-c5" 'coverlay-toggle-overlays)
-
-;; Dependencies
-;; ------------
+;;     (require 'coverlay)
 ;;
-;; tests(expectations) are depend on `el-expectataions.el`.
-;; 
+;; Load lcov file into coverlay buffer
+;;
+;;     M-x coverlay-load-file /path/to/lcov-file
+;;
+;; Toggle overlay
+;;
+;;     M-x coverlay-toggle-overlays
 ;;
 ;;; Code:
 
 (defvar coverlay-alist nil)
-(defvar coverlay-buffer-name "*coverlay-stats*")
-(defvar coverlay-untested-line-background-color "red4")
+
+;;
+;; Customizable variables
+
+(defgroup coverlay nil
+  "Code Coverage Overlay for Emacs."
+  :group 'tools
+  :prefix "coverlay:")
+
+(defcustom coverlay:data-buffer-name "*coverlay-stats*"
+  "temp buffer name for coverage data."
+  :type 'string
+  :group 'coverlay)
+
+(defcustom coverlay:untested-line-background-color "red4"
+  "background-color for untested lines."
+  :type 'string
+  :group 'coverlay)
 
 
-;;;; command: coverlay-load-file
+;;
+;; command: coverlay-load-file
 
 (defun coverlay-load-file (filepath)
   "(re)load coverage data"
-  (interactive (list (read-file-name "lcov file:")) )
+  (interactive (list (read-file-name "lcov file: ")) )
   (setq stats-buf (coverlay-create-stats-buffer filepath))
   (setq coverlay-alist (coverlay-create-stats-alist-from-buffer stats-buf)))
 
 (defun coverlay-create-stats-buffer (data-file-path)
   "get or create buffer filled with contents specified as data-file-path"
-  (with-current-buffer (get-buffer-create coverlay-buffer-name)
+  (with-current-buffer (get-buffer-create coverlay:data-buffer-name)
     (erase-buffer)
     (insert-file-contents data-file-path)
     (beginning-of-buffer)
@@ -154,8 +170,8 @@
   (substring line (+ (string-match "\:" line) 1)))
 
 
-
-;;;; command: coverlay-toggle-overlays
+;;
+;; command: coverlay-toggle-overlays
 
 (defun coverlay-toggle-overlays (buffer)
   "toggle coverage overlay"
@@ -185,7 +201,7 @@
     (beginning-of-buffer)
     (dolist (ovl (coverlay-map-overlays tuple-list))
       (progn
-        (overlay-put ovl 'face (cons 'background-color coverlay-untested-line-background-color))
+        (overlay-put ovl 'face (cons 'background-color coverlay:untested-line-background-color))
         (overlay-put ovl 'coverlay t)
         ))))
 
