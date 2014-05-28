@@ -61,6 +61,7 @@
 ;;
 ;; command: coverlay-load-file
 
+;;;###autoload
 (defun coverlay-load-file (filepath)
   "(re)load coverage data"
   (interactive (list (read-file-name "lcov file: ")) )
@@ -169,6 +170,7 @@
 ;;
 ;; command: coverlay-toggle-overlays
 
+;;;###autoload
 (defun coverlay-toggle-overlays (buffer)
   "toggle coverage overlay"
   (interactive (list (current-buffer)))
