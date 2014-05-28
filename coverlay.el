@@ -72,7 +72,7 @@
   (with-current-buffer (get-buffer-create coverlay:data-buffer-name)
     (erase-buffer)
     (insert-file-contents data-file-path)
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (current-buffer)))
 
 (defun coverlay-create-stats-alist-from-buffer (buf)
@@ -194,7 +194,7 @@
 
 (defun coverlay-overlay-current-buffer-with-list (tuple-list)
   (save-excursion
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (dolist (ovl (coverlay-map-overlays tuple-list))
       (progn
         (overlay-put ovl 'face (cons 'background-color coverlay:untested-line-background-color))
