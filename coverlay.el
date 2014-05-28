@@ -5,7 +5,7 @@
 ;; Author: Takuto Wada <takuto.wada at gmail com>
 ;; Keywords: coverage, overlay
 ;; Homepage: https://github.com/twada/coverlay.el
-;; Version: 0.3
+;; Version: 0.3.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
