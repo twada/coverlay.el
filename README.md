@@ -42,6 +42,11 @@ AUTHOR
 * [Takuto Wada](http://github.com/twada)
 
 
+CONTRIBUTORS
+---------------------------------------
+* [syohex](https://github.com/syohex)
+
+
 LICENSE
 ---------------------------------------
 Licensed under the GPLv3 license.
