@@ -5,7 +5,7 @@
 ;; Author: Takuto Wada <takuto.wada at gmail com>
 ;; Keywords: coverage, overlay
 ;; Homepage: https://github.com/twada/coverlay.el
-;; Version: 0.4.0
+;; Version: 0.5.0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,6 +20,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+(require 'filenotify)
+
 ;;; Commentary:
 ;; ------------
 ;;
@@ -27,17 +29,26 @@
 ;;
 ;;     (require 'coverlay)
 ;;
+;; Minor mode will toggle overlays in all buffers according to current lcov file
+;;
+;;     M-x coverlay-mode
+;;
 ;; Load lcov file into coverlay buffer
 ;;
 ;;     M-x coverlay-load-file /path/to/lcov-file
 ;;
-;; Toggle overlay
+;; Load and watch a lcov file for changes
+;;
+;;     M-x coverlay-watch-file /path/to/lcov-file
+;;
+;; Toggle overlay for current buffer
 ;;
 ;;     M-x coverlay-toggle-overlays
 ;;
 ;;; Code:
 
 (defvar coverlay-alist nil)
+(defvar coverlay--watch-descriptor nil)
 
 ;;
 ;; Customizable variables
@@ -65,6 +76,39 @@
 (defun coverlay-load-file (filepath)
   "(re)load coverage data"
   (interactive (list (read-file-name "lcov file: ")) )
+  (coverlay-create-buffer-from-filepath filepath))
+
+(defun coverlay-file-load-callback ()
+  "Initialize overlays in buffer after loading."
+  (let ((filename (buffer-file-name)))
+    (message (format "loading coverlay for file: %s" filename))
+    (coverlay-overlay-current-buffer)))
+
+;;;###autoload
+(defun coverlay-watch-file (filepath)
+  "Watch file at FILEPATH for coverage data."
+  (interactive (list (read-file-name "lcov file: ")) )
+  (coverlay-end-watch)
+  (coverlay-load-file filepath)
+  (message (format "coverlay watching %s" filepath))
+  (setq coverlay--watch-descriptor
+        (file-notify-add-watch filepath '(change)
+                               #'coverlay-watch-callback)))
+
+(defun coverlay-end-watch ()
+  "Remove the current filewatch if any."
+  (file-notify-rm-watch coverlay--watch-descriptor))
+
+(defun coverlay-watch-callback (args)
+  "Reload data on coverage change."
+  (let ((filepath (nth 2 args)))
+    (progn
+      (message (format "coverlay updating from %s" filepath))
+      (coverlay-create-buffer-from-filepath filepath))))
+;; missing: update all visited buffers to current state
+
+(defun coverlay-create-buffer-from-filepath (filepath)
+  "get or create stats buffer from filepath"
   (let ((stats-buf (coverlay-create-stats-buffer filepath)))
     (setq coverlay-alist (coverlay-create-stats-alist-from-buffer stats-buf))))
 
@@ -177,10 +221,18 @@
   (if (not coverlay-alist)
       (message "coverlay.el: Coverage data not found. Please use `coverlay-load-file` to load them.")
     (with-current-buffer buffer
-      (if (coverlay-overlay-exists-p)
-          (coverlay-clear-cov-overlays)
-        (coverlay-overlay-current-buffer-with-list
-         (coverlay-stats-tuples-for buffer coverlay-alist))))))
+      (coverlay-toggle-overlays-current-buffer))))
+
+(defun coverlay-toggle-overlays-current-buffer ()
+  "Toggle overlay in current buffer."
+  (if (coverlay-overlay-exists-p)
+      (coverlay-clear-cov-overlays)
+    (coverlay-overlay-current-buffer)))
+
+(defun coverlay-overlay-current-buffer ()
+  "Overlay current buffer."
+  (coverlay-overlay-current-buffer-with-list
+     (coverlay-stats-tuples-for (current-buffer) coverlay-alist)))
 
 (defun coverlay-overlay-exists-p ()
   (coverlay-overlay-exists-in-list-p (overlays-in (point-min) (point-max))))
@@ -213,6 +265,26 @@
 (defun coverlay-stats-tuples-for (buffer stats-alist)
   (cdr (assoc (expand-file-name (buffer-file-name buffer)) stats-alist)))
 
+;;;###autoload
+(define-minor-mode coverlay-mode
+  "overlays for uncovered lines"
+  :lighter " lcov"
+  :global t
+  :keymap (let ((map (make-sparse-keymap)))
+            (define-key map (kbd "C-c l") 'coverlay-toggle-overlays)
+            map)
+  (coverlay--switch-mode coverlay-mode))
+
+(defun coverlay--switch-mode (enabled)
+  "Switch global mode to be ENABLED or not."
+  ;; missing: restore overlay state
+  (if enabled
+      (progn
+        (add-hook 'find-file-hook #'coverlay-file-load-callback))
+    ;; cleanup
+    (progn
+      (coverlay-end-watch)
+      (remove-hook 'find-file-hook #'coverlay-file-load-callback))))
 
 (provide 'coverlay)
 ;;; coverlay.el ends here
