@@ -32,19 +32,24 @@ Coverlay contains a global mode that will highlight missed lines on every covere
 
     M-x coverlay-mode
 
+
 Load a lcov file and keep watching it for changes.
 
     M-x coverlay-watch-file /path/to/lcov-file
+
 
 Alternativly just read the coverage file once.
 
     M-x coverlay-load-file /path/to/lcov-file
 
+This command is bound to "C-c lf" by default.
+
+
 You can also manually toggle the overlays in the current buffer.
 
     M-x coverlay-toggle-overlays
 
-This command is bound to "C-c l" by default.
+This command is bound to "C-c ll" by default.
 
 
 AUTHOR

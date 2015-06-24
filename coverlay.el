@@ -87,7 +87,13 @@
 ;;;###autoload
 (defun coverlay-watch-file (filepath)
   "Watch file at FILEPATH for coverage data."
-  (interactive (list (read-file-name "lcov file: ")) )
+  (if file-notify--library
+      (coverlay--do-watch-file filepath)
+    (message "file notify not supported, please use coverlay-load-file instead")))
+
+(defun coverlay--do-watch-file (filepath)
+  "Use notify lib to Watch file at FILEPATH for coverage data."
+  (interactive (list (read-file-name "lcov file: ")))
   (coverlay-end-watch)
   (coverlay-load-file filepath)
   (message (format "coverlay watching %s" filepath))
@@ -201,13 +207,13 @@
          (string-equal (substring s 0 (length begins)) begins))
         (t nil)))
 
-(defun coverlay-extract-source-file (line) 
+(defun coverlay-extract-source-file (line)
   (coverlay-extract-rhs line))
 
-(defun coverlay-extract-data-list (line) 
+(defun coverlay-extract-data-list (line)
   (mapcar 'string-to-number (split-string (coverlay-extract-rhs line) ",")))
 
-(defun coverlay-extract-rhs (line) 
+(defun coverlay-extract-rhs (line)
   (substring line (+ (string-match "\:" line) 1)))
 
 
@@ -271,7 +277,8 @@
   :lighter " lcov"
   :global t
   :keymap (let ((map (make-sparse-keymap)))
-            (define-key map (kbd "C-c l") 'coverlay-toggle-overlays)
+            (define-key map (kbd "C-c ll") 'coverlay-toggle-overlays)
+            (define-key map (kbd "C-c lf") 'coverlay-load-file)
             map)
   (coverlay--switch-mode coverlay-mode))
 
