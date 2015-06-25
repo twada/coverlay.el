@@ -47,7 +47,10 @@
 ;;
 ;;; Code:
 
+;; coverage data parsed from lcov-file-buffer
 (defvar coverlay-alist nil)
+
+;; holds a token for the current watch (if any) for removal
 (defvar coverlay--watch-descriptor nil)
 
 ;;
@@ -83,6 +86,9 @@
   (let ((filename (buffer-file-name)))
     (message (format "loading coverlay for file: %s" filename))
     (coverlay-overlay-current-buffer)))
+
+;;
+;; command: coverlay-watch-file
 
 ;;;###autoload
 (defun coverlay-watch-file (filepath)
