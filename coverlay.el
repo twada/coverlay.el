@@ -87,8 +87,8 @@
 ;;;###autoload
 (defun coverlay-load-file (filepath)
   "(re)load lcov coverage data from FILEPATH."
-  (interactive (list (read-file-name "lcov file: ")) )
-  (coverlay-create-buffer-from-filepath filepath))
+  (interactive (list (read-file-name "lcov file: ")))
+  (coverlay--lcov-update filepath))
 
 (defun coverlay-file-load-callback ()
   "Initialize overlays in buffer after loading."
@@ -127,8 +127,13 @@
   (let ((filepath (nth 2 args)))
     (progn
       (message (format "coverlay updating from %s" filepath))
-      (coverlay-create-buffer-from-filepath filepath))))
-;; missing: update all visited buffers to current state
+      (coverlay--lcov-update filepath))))
+
+(defun coverlay--lcov-update (filepath)
+  "Update internal state and all buffers for new lcov data from FILEPATH."
+  (coverlay--clear-all-buffers)
+  (coverlay-create-buffer-from-filepath filepath)
+  (coverlay--overlay-all-buffers))
 
 (defun coverlay-create-buffer-from-filepath (filepath)
   "Get or create stats buffer from FILEPATH."
@@ -263,8 +268,14 @@
       (coverlay-clear-cov-overlays)
     (coverlay-overlay-current-buffer)))
 
+(defun coverlay-overlay-buffer (buffer)
+  "Overlay BUFFER."
+  (with-current-buffer buffer
+    (coverlay-overlay-current-buffer)))
+
 (defun coverlay-overlay-current-buffer ()
   "Overlay current buffer."
+  (coverlay-clear-cov-overlays)
   (coverlay-overlay-current-buffer-with-list
      (coverlay-stats-tuples-for (current-buffer) coverlay-alist)))
 
@@ -305,6 +316,42 @@
   "Construct tuple for BUFFER and data in STATS-ALIST."
   (cdr (assoc (expand-file-name (buffer-file-name buffer)) stats-alist)))
 
+(defun coverlay--get-filenames ()
+  "Return all filenames from current lcov file."
+  (mapcar #'car coverlay-alist))
+
+(defun coverlay-overlay-all-buffers (filename)
+  "Overlay all buffers visiting FILENAME."
+  (let ((buffers (find-buffer-visiting filename)))
+    (when buffers
+        (message (format "Marking buffers: %s" buffers))
+        (coverlay-overlay-buffer buffers)
+        filename)))
+
+(defun coverlay-clear-all-buffers (filename)
+  "Clear all buffers visiting FILENAME."
+  (let ((buffers (find-buffer-visiting filename)))
+    (when buffers
+        (message (format "Clearing buffers: %s" buffers))
+        (with-current-buffer buffers
+          (when (coverlay-overlay-exists-p)
+            (coverlay-clear-cov-overlays)))
+        filename)))
+
+(defun coverlay--overlay-all-buffers ()
+  "Toggle all overlays in open buffers contained in alist."
+  (mapcar (lambda (file)
+          (coverlay-overlay-all-buffers file))
+        (coverlay--get-filenames)))
+
+(defun coverlay--clear-all-buffers ()
+  "Clear all overlays in open buffers contained in alist."
+  (mapcar (lambda (file)
+          (coverlay-clear-all-buffers file))
+        (coverlay--get-filenames)))
+
+;;(coverlay--overlay-all-buffers)
+
 ;;;###autoload
 (define-minor-mode coverlay-mode
   "overlays for uncovered lines"
@@ -321,11 +368,24 @@
   ;; missing: restore overlay state
   (if enabled
       (progn
+        (add-hook 'coverlay-mode-hook #'coverlay--update-buffers)
         (add-hook 'find-file-hook #'coverlay-file-load-callback))
     ;; cleanup
-    (progn
-      (coverlay-end-watch)
-      (remove-hook 'find-file-hook #'coverlay-file-load-callback))))
+    (coverlay-end-watch)
+    (remove-hook 'find-file-hook #'coverlay-file-load-callback)
+    (remove-hook 'coverlay-mode-hook #'coverlay--update-buffers)
+    (coverlay--clear-all-buffers)))
+
+;;(setq coverlay-mode-hook nil)
+
+(defun coverlay--update-buffers ()
+  "Update all buffers to current mode state."
+  (mapcar (lambda (file)
+            (if coverlay-mode
+                (coverlay-overlay-all-buffers file)
+              (coverlay-clear-all-buffers file)))
+        (coverlay--get-filenames)))
+
 
 (provide 'coverlay)
 ;;; coverlay.el ends here
