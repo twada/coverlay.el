@@ -108,7 +108,7 @@
   (let* ((filename (buffer-file-name))
          (buffer-coverage-data (coverlay-stats-tuples-for (current-buffer) coverlay-alist)))
     (when buffer-coverage-data
-      (message (format "loading coverlay for file: %s" filename))
+      (message (format "coverlay.el: loading coverlay for file: %s" filename))
       (coverlay-overlay-current-buffer-with-data buffer-coverage-data))))
 
 ;;
@@ -119,14 +119,14 @@
   "Watch file at FILEPATH for coverage data."
   (if file-notify--library
       (coverlay--do-watch-file filepath)
-    (message "file notify not supported, please use coverlay-load-file instead")))
+    (message "coverlay.el: file notify not supported, please use coverlay-load-file instead")))
 
 (defun coverlay--do-watch-file (filepath)
   "Use notify lib to Watch file at FILEPATH for coverage data."
   (interactive (list (read-file-name "lcov file: ")))
   (coverlay-end-watch)
   (coverlay-load-file filepath)
-  (message (format "coverlay watching %s" filepath))
+  (message (format "coverlay.el: watching %s" filepath))
   (setq coverlay--watch-descriptor
         (file-notify-add-watch filepath '(change)
                                #'coverlay-watch-callback)))
@@ -139,7 +139,7 @@
   "Reload data on coverage change in ARGS."
   (let ((filepath (nth 2 args)))
     (progn
-      (message (format "coverlay updating from %s" filepath))
+      (message (format "coverlay.el: updating from %s" filepath))
       (coverlay--lcov-update filepath))))
 
 (defun coverlay--lcov-update (filepath)
@@ -291,7 +291,7 @@
   (let ((data (coverlay-stats-tuples-for (current-buffer) coverlay-alist)))
     (if data
         (coverlay-overlay-current-buffer-with-data data)
-      (message (format "no coverage data for %s in %s"
+      (message (format "coverlay.el: no coverage data for %s in %s"
                        (buffer-file-name (current-buffer))
                        coverlay--loaded-filepath)))))
 
@@ -353,7 +353,7 @@
   "Overlay all buffers visiting FILENAME."
   (let ((buffers (find-buffer-visiting filename)))
     (when buffers
-        (message (format "Marking buffers: %s" buffers))
+        (message (format "coverlay.el: Marking buffers: %s" buffers))
         (coverlay-overlay-buffer buffers)
         filename)))
 
@@ -361,7 +361,7 @@
   "Clear all buffers visiting FILENAME."
   (let ((buffers (find-buffer-visiting filename)))
     (when buffers
-        (message (format "Clearing buffers: %s" buffers))
+        (message (format "coverlay.el: Clearing buffers: %s" buffers))
         (with-current-buffer buffers
           (when (coverlay-overlay-exists-p)
             (coverlay-clear-cov-overlays)))
