@@ -288,8 +288,12 @@
 
 (defun coverlay-overlay-current-buffer ()
   "Overlay current buffer."
-  (coverlay-overlay-current-buffer-with-data
-   (coverlay-stats-tuples-for (current-buffer) coverlay-alist)))
+  (let ((data (coverlay-stats-tuples-for (current-buffer) coverlay-alist)))
+    (if data
+        (coverlay-overlay-current-buffer-with-data data)
+      (message (format "no coverage data for %s in %s"
+                       (buffer-file-name (current-buffer))
+                       coverlay--loaded-filepath)))))
 
 (defun coverlay-overlay-current-buffer-with-data (data)
   "Overlay current buffer with DATA."
