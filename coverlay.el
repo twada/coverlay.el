@@ -92,9 +92,11 @@
 
 (defun coverlay-file-load-callback ()
   "Initialize overlays in buffer after loading."
-  (let ((filename (buffer-file-name)))
-    (message (format "loading coverlay for file: %s" filename))
-    (coverlay-overlay-current-buffer)))
+  (let* ((filename (buffer-file-name))
+         (buffer-coverage-data (coverlay-stats-tuples-for (current-buffer) coverlay-alist)))
+    (when buffer-coverage-data
+      (message (format "loading coverlay for file: %s" filename))
+      (coverlay-overlay-current-buffer-with-data buffer-coverage-data))))
 
 ;;
 ;; command: coverlay-watch-file
