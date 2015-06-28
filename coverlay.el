@@ -45,6 +45,15 @@
 ;;
 ;;     M-x coverlay-toggle-overlays
 ;;
+
+;;; Todo/Ideas:
+;;
+;; * optionally color covered lines
+;; * add status view
+;; * better lcov data change detection on watch/load
+;; * add branch coverage
+;; * ability to load/watch multiple lcov files
+
 ;;; Code:
 
 ;; coverage data parsed from lcov-file-buffer
