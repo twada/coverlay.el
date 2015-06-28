@@ -48,8 +48,8 @@
 
 ;;; Todo/Ideas:
 ;;
-;; * optionally color covered lines
 ;; * add status view
+;; * rework tested line handling to use actual lcov data
 ;; * better lcov data change detection on watch/load
 ;; * add branch coverage
 ;; * ability to load/watch multiple lcov files
@@ -78,6 +78,16 @@
 (defcustom coverlay:untested-line-background-color "red4"
   "background-color for untested lines."
   :type 'string
+  :group 'coverlay)
+
+(defcustom coverlay:tested-line-background-color "green1"
+  "background-color for tested lines."
+  :type 'string
+  :group 'coverlay)
+
+(defcustom coverlay:mark-tested-lines t
+  "background-color for tested lines."
+  :type 'boolean
   :group 'coverlay)
 
 
@@ -275,9 +285,15 @@
 
 (defun coverlay-overlay-current-buffer ()
   "Overlay current buffer."
+  (coverlay-overlay-current-buffer-with-data
+   (coverlay-stats-tuples-for (current-buffer) coverlay-alist)))
+
+(defun coverlay-overlay-current-buffer-with-data (data)
+  "Overlay current buffer with DATA."
   (coverlay-clear-cov-overlays)
-  (coverlay-overlay-current-buffer-with-list
-     (coverlay-stats-tuples-for (current-buffer) coverlay-alist)))
+  (when coverlay:mark-tested-lines
+        (coverlay--make-covered-overlay))
+  (coverlay-overlay-current-buffer-with-list data))
 
 (defun coverlay-overlay-exists-p ()
   "Predicate if coverlay overlays exists in current buffer."
@@ -294,15 +310,21 @@
   "Clear all coverlay overlays in current buffer."
   (remove-overlays (point-min) (point-max) 'coverlay t))
 
+(defun coverlay--make-covered-overlay ()
+  "Mark all lines in current buffer as covered with overlay."
+  (coverlay--overlay-put (make-overlay (point-min) (point-max)) coverlay:tested-line-background-color))
+
 (defun coverlay-overlay-current-buffer-with-list (tuple-list)
   "Overlay current buffer acording to given TUPLE-LIST."
   (save-excursion
     (goto-char (point-min))
     (dolist (ovl (coverlay-map-overlays tuple-list))
-      (progn
-        (overlay-put ovl 'face (cons 'background-color coverlay:untested-line-background-color))
-        (overlay-put ovl 'coverlay t)
-        ))))
+      (coverlay--overlay-put ovl coverlay:untested-line-background-color))))
+
+(defun coverlay--overlay-put (ovl color)
+  "Record actual overlay in OVL with COLOR."
+  (overlay-put ovl 'face (cons 'background-color color))
+  (overlay-put ovl 'coverlay t))
 
 (defun coverlay-map-overlays (tuple-list)
   "make-overlay for each of a TUPLE(two line-numbers) LIST."
