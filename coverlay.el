@@ -20,7 +20,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(require 'filenotify)
+(require 'filenotify)            ; File watching
+(require 'tabulated-list)        ; To display statistics
 
 ;;; Commentary:
 ;; ------------
@@ -59,6 +60,9 @@
 ;; coverage data parsed from lcov-file-buffer
 (defvar coverlay-alist nil)
 
+;; coverage statistic data parsed from lcov-file-buffer
+(defvar coverlay-stats-alist nil)
+
 ;; holds a token for the current watch (if any) for removal
 (defvar coverlay--watch-descriptor nil)
 
@@ -73,8 +77,8 @@
   :group 'tools
   :prefix "coverlay:")
 
-(defcustom coverlay:data-buffer-name "*coverlay-stats*"
-  "temp buffer name for coverage data."
+(defcustom coverlay:stats-buffer-name "*coverlay-stats*"
+  "buffer name for coverage view."
   :type 'string
   :group 'coverlay)
 
@@ -117,13 +121,13 @@
 ;;;###autoload
 (defun coverlay-watch-file (filepath)
   "Watch file at FILEPATH for coverage data."
+  (interactive (list (read-file-name "lcov file: ")))
   (if file-notify--library
       (coverlay--do-watch-file filepath)
     (message "coverlay.el: file notify not supported, please use coverlay-load-file instead")))
 
 (defun coverlay--do-watch-file (filepath)
   "Use notify lib to Watch file at FILEPATH for coverage data."
-  (interactive (list (read-file-name "lcov file: ")))
   (coverlay-end-watch)
   (coverlay-load-file filepath)
   (message (format "coverlay.el: watching %s" filepath))
@@ -381,6 +385,47 @@
 
 ;;(coverlay--overlay-all-buffers)
 
+(defun coverlay--stats-tabulate-files ()
+  "Tabulate statistics on file base."
+  (mapcar (lambda (entry)
+            (let* ((file (car entry))
+                   (data (cdr entry)))
+              (message (format "entry: %s: %s" file data))
+              (list file (vector (if data "nope" "100%") file))))
+          coverlay-alist))
+
+(defun coverlay--stats-tabulate ()
+  "Tabulate current statistics for major mode display."
+  (cons (list "x" (vector "???%" "overall")) (coverlay--stats-tabulate-files)))
+
+;; (coverlay-display-stats)
+
+
+(define-derived-mode coverlay-stats-mode tabulated-list-mode "coverlay-stats"
+  "Mode for listing statistics of coverlay-mode."
+  (setq tabulated-list-format [("covered" 8 t)
+                               ("File" 100 t)]
+        tabulated-list-padding 1
+        tabulated-list-entries #'coverlay--stats-tabulate)
+  (tabulated-list-init-header))
+
+(defun coverlay--update-stats-buffer ()
+  "Refresh statistics, due to an update."
+  (save-window-excursion
+    (let ((buffer (get-buffer coverlay:stats-buffer-name)))
+      (when buffer
+        (with-current-buffer buffer
+          (revert-buffer))))))
+
+;;;###autoload
+(defun coverlay-display-stats ()
+  "Display buffer with current coverage statistics."
+  (interactive)
+  ;; (coverlay--update-stats-buffer)
+  (pop-to-buffer coverlay:stats-buffer-name)
+  (coverlay-stats-mode)
+  (tabulated-list-print))
+
 ;;;###autoload
 (define-minor-mode coverlay-mode
   "overlays for uncovered lines"
@@ -389,6 +434,8 @@
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map (kbd "C-c ll") 'coverlay-toggle-overlays)
             (define-key map (kbd "C-c lf") 'coverlay-load-file)
+            (define-key map (kbd "C-c lw") 'coverlay-watch-file)
+            (define-key map (kbd "C-c ls") 'coverlay-display-stats)
             map)
   (coverlay--switch-mode coverlay-mode))
 
