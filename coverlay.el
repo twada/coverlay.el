@@ -86,7 +86,7 @@
 
 ;;;###autoload
 (defun coverlay-load-file (filepath)
-  "(re)load coverage data"
+  "(re)load lcov coverage data from FILEPATH."
   (interactive (list (read-file-name "lcov file: ")) )
   (coverlay-create-buffer-from-filepath filepath))
 
@@ -121,7 +121,7 @@
   (file-notify-rm-watch coverlay--watch-descriptor))
 
 (defun coverlay-watch-callback (args)
-  "Reload data on coverage change."
+  "Reload data on coverage change in ARGS."
   (let ((filepath (nth 2 args)))
     (progn
       (message (format "coverlay updating from %s" filepath))
@@ -129,51 +129,54 @@
 ;; missing: update all visited buffers to current state
 
 (defun coverlay-create-buffer-from-filepath (filepath)
-  "get or create stats buffer from filepath"
+  "Get or create stats buffer from FILEPATH."
   (let ((stats-buf (coverlay-create-stats-buffer filepath)))
     (setq coverlay-alist (coverlay-create-stats-alist-from-buffer stats-buf))))
 
 (defun coverlay-create-stats-buffer (data-file-path)
-  "get or create buffer filled with contents specified as data-file-path"
+  "Get or create buffer filled with contents specified as DATA-FILE-PATH."
   (with-current-buffer (get-buffer-create coverlay:data-buffer-name)
     (erase-buffer)
     (insert-file-contents data-file-path)
     (goto-char (point-min))
     (current-buffer)))
 
-(defun coverlay-create-stats-alist-from-buffer (buf)
-  (coverlay-tuplize-cdr-of-alist (coverlay-reverse-cdr-of-alist (coverlay-parse-buffer buf))))
+(defun coverlay-create-stats-alist-from-buffer (buffer)
+  "Create the alist from data in BUFFER."
+  (coverlay-tuplize-cdr-of-alist (coverlay-reverse-cdr-of-alist (coverlay-parse-buffer buffer))))
 
 (defun coverlay-reverse-cdr-of-alist (target-alist)
-  "convert '((Japanese . (hoge fuga piyo)) (English . (foo bar baz))) to '((Japanese . (piyo fuga hoge)) (English . (baz bar foo)))"
+  "Convert '((Japanese . (hoge fuga piyo)) (English . (foo bar baz))) to '((Japanese . (piyo fuga hoge)) (English . (baz bar foo))) in TARGET-ALIST."
   (mapcar 'coverlay-reverse-cdr target-alist))
 
 (defun coverlay-reverse-cdr (target-list)
+  "Reverse CDR in TARGET-LIST."
   (cons
    (car target-list)
    (reverse (cdr target-list))))
 
 (defun coverlay-tuplize-cdr-of-alist (target-alist)
-  "convert '((Japanese . (hoge fuga piyo moge)) (English . (foo bar baz moo)))  to '((Japanese . ((hoge fuga) (piyo moge)) (English . ((foo bar) (baz moo))))"
+  "Convert '((Japanese . (hoge fuga piyo moge)) (English . (foo bar baz moo)))  to '((Japanese . ((hoge fuga) (piyo moge)) (English . ((foo bar) (baz moo)))) in TARGET-ALIST."
   (mapcar 'coverlay-tuplize-cdr target-alist))
 
 (defun coverlay-tuplize-cdr (target-list)
+  "Tupelize cdr of TARGET-LIST."
   (progn
     (setcdr target-list (coverlay-create-tuple-pairs (cdr target-list)))
     target-list))
 
 (defun coverlay-create-tuple-pairs (even-list)
-  "convert (foo bar baz hoge) to ((foo bar) (baz hoge))"
+  "Convert (foo bar baz hoge) to ((foo bar) (baz hoge)) in EVEN-LIST."
   (let ((result '()))
     (while even-list
       (setq result (cons (list (car even-list) (car (cdr even-list))) result))
       (setq even-list (nthcdr 2 even-list)))
     (nreverse result)))
 
-(defun coverlay-parse-buffer (buf)
-  "Parse buffer to alits. car of each element is filename, cdr is segment of lines."
+(defun coverlay-parse-buffer (buffer)
+  "Parse BUFFER to alist.  car of each element is filename, cdr is segment of lines."
   (let (alist filename)
-    (with-current-buffer buf
+    (with-current-buffer buffer
       (while (not (eobp))
         (let ((current-line (coverlay-current-line)))
          (when (coverlay-source-file-p current-line)
@@ -192,6 +195,7 @@
       alist)))
 
 (defun coverlay-handle-uncovered-line (alist filename lineno)
+  "Add uncovered line at LINENO in FILENAME to ALIST."
   (let* ((file-segments (assoc filename alist))
          (segment-list-body (cdr file-segments)))
     (if (not segment-list-body)
@@ -201,18 +205,22 @@
         (setcdr file-segments (append (list lineno lineno) segment-list-body))))))
 
 (defun coverlay-current-line ()
+  "Get current line of current buffer."
   (buffer-substring (point)
                     (save-excursion
                       (end-of-line)
                       (point))))
 
 (defun coverlay-source-file-p (line)
+  "Predicate if LINE contains lcov source data (SF)."
   (coverlay-string-starts-with line "SF:"))
 
 (defun coverlay-data-line-p (line)
+  "Predicate if LINE contains lcov line coverage data (DA)."
   (coverlay-string-starts-with line "DA:"))
 
 (defun coverlay-end-of-record-p (line)
+  "Predicate if LINE contains lcov end marker (end_of_record)."
   (coverlay-string-starts-with line "end_of_record"))
 
 ;; http://www.emacswiki.org/emacs/ElispCookbook#toc4
@@ -223,12 +231,15 @@
         (t nil)))
 
 (defun coverlay-extract-source-file (line)
+  "Extract file name from lcov source LINE."
   (coverlay-extract-rhs line))
 
 (defun coverlay-extract-data-list (line)
+  "Extract data list from lcov line coverage LINE."
   (mapcar 'string-to-number (split-string (coverlay-extract-rhs line) ",")))
 
 (defun coverlay-extract-rhs (line)
+  "Extract right hand lcov value from LINE."
   (substring line (+ (string-match "\:" line) 1)))
 
 
@@ -237,7 +248,7 @@
 
 ;;;###autoload
 (defun coverlay-toggle-overlays (buffer)
-  "toggle coverage overlay"
+  "Toggle coverage overlay in BUFFER."
   (interactive (list (current-buffer)))
   (if (not coverlay-alist)
       (message "coverlay.el: Coverage data not found. Please use `coverlay-load-file` to load them.")
@@ -256,18 +267,22 @@
      (coverlay-stats-tuples-for (current-buffer) coverlay-alist)))
 
 (defun coverlay-overlay-exists-p ()
+  "Predicate if coverlay overlays exists in current buffer."
   (coverlay-overlay-exists-in-list-p (overlays-in (point-min) (point-max))))
 
 (defun coverlay-overlay-exists-in-list-p (ovl-list)
+  "Predicate if coverlay overlays exists in OVL-LIST."
   (catch 'loop
     (dolist (ovl ovl-list)
       (if (overlay-get ovl 'coverlay) (throw 'loop t) nil)
       nil)))
 
 (defun coverlay-clear-cov-overlays ()
+  "Clear all coverlay overlays in current buffer."
   (remove-overlays (point-min) (point-max) 'coverlay t))
 
 (defun coverlay-overlay-current-buffer-with-list (tuple-list)
+  "Overlay current buffer acording to given TUPLE-LIST."
   (save-excursion
     (goto-char (point-min))
     (dolist (ovl (coverlay-map-overlays tuple-list))
@@ -281,9 +296,11 @@
   (mapcar 'coverlay-make-overlay tuple-list))
 
 (defun coverlay-make-overlay (tuple)
+  "Make overlay for values in TUPLE."
   (make-overlay (point-at-bol (car tuple)) (point-at-eol (cadr tuple))))
 
 (defun coverlay-stats-tuples-for (buffer stats-alist)
+  "Construct tuple for BUFFER and data in STATS-ALIST."
   (cdr (assoc (expand-file-name (buffer-file-name buffer)) stats-alist)))
 
 ;;;###autoload
