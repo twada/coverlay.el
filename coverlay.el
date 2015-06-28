@@ -62,6 +62,9 @@
 ;; holds a token for the current watch (if any) for removal
 (defvar coverlay--watch-descriptor nil)
 
+;; name of the currently loaded lcov file
+(defvar coverlay--loaded-filepath nil)
+
 ;;
 ;; Customizable variables
 
@@ -142,25 +145,21 @@
 (defun coverlay--lcov-update (filepath)
   "Update internal state and all buffers for new lcov data from FILEPATH."
   (coverlay--clear-all-buffers)
-  (coverlay-create-buffer-from-filepath filepath)
+  (coverlay-create-alist-from-filepath filepath)
+  (coverlay--update-stats-buffer)
   (coverlay--overlay-all-buffers))
 
-(defun coverlay-create-buffer-from-filepath (filepath)
-  "Get or create stats buffer from FILEPATH."
-  (let ((stats-buf (coverlay-create-stats-buffer filepath)))
-    (setq coverlay-alist (coverlay-create-stats-alist-from-buffer stats-buf))))
-
-(defun coverlay-create-stats-buffer (data-file-path)
-  "Get or create buffer filled with contents specified as DATA-FILE-PATH."
-  (with-current-buffer (get-buffer-create coverlay:data-buffer-name)
-    (erase-buffer)
-    (insert-file-contents data-file-path)
+(defun coverlay-create-alist-from-filepath (filepath)
+  "Read stats into alist from FILEPATH."
+  (with-temp-buffer
+    (insert-file-contents filepath)
     (goto-char (point-min))
-    (current-buffer)))
+    (setq coverlay-alist (coverlay-create-stats-alist-from-current-buffer))
+    (setq coverlay--loaded-filepath filepath)))
 
-(defun coverlay-create-stats-alist-from-buffer (buffer)
-  "Create the alist from data in BUFFER."
-  (coverlay-tuplize-cdr-of-alist (coverlay-reverse-cdr-of-alist (coverlay-parse-buffer buffer))))
+(defun coverlay-create-stats-alist-from-current-buffer ()
+  "Create the alist from data in current buffer."
+  (coverlay-tuplize-cdr-of-alist (coverlay-reverse-cdr-of-alist (coverlay-parse-current-buffer))))
 
 (defun coverlay-reverse-cdr-of-alist (target-alist)
   "Convert '((Japanese . (hoge fuga piyo)) (English . (foo bar baz))) to '((Japanese . (piyo fuga hoge)) (English . (baz bar foo))) in TARGET-ALIST."
@@ -191,25 +190,29 @@
     (nreverse result)))
 
 (defun coverlay-parse-buffer (buffer)
-  "Parse BUFFER to alist.  car of each element is filename, cdr is segment of lines."
+  "Parse BUFFER into alist."
+  (with-current-buffer buffer
+    (coverlay-parse-current-buffer)))
+
+(defun coverlay-parse-current-buffer ()
+  "Parse current buffer to alist.  car of each element is filename, cdr is segment of lines."
   (let (alist filename)
-    (with-current-buffer buffer
-      (while (not (eobp))
-        (let ((current-line (coverlay-current-line)))
-         (when (coverlay-source-file-p current-line)
-           (setq filename (coverlay-extract-source-file current-line))
-           (when (not (assoc filename alist))
-             ;; (print (format "segments for %s does not exist" filename))
-             (setq alist (cons (list filename) alist))))
-         (when (coverlay-data-line-p current-line)
-           (let* ((cols (coverlay-extract-data-list current-line))
-                  (lineno (nth 0 cols))
-                  (count (nth 1 cols)))
-             (when (= count 0)
-               ;; (print (format "count %d is zero" count))
-               (coverlay-handle-uncovered-line alist filename lineno)))))
-        (forward-line 1))
-      alist)))
+    (while (not (eobp))
+      (let ((current-line (coverlay-current-line)))
+        (when (coverlay-source-file-p current-line)
+          (setq filename (coverlay-extract-source-file current-line))
+          (when (not (assoc filename alist))
+            ;; (print (format "segments for %s does not exist" filename))
+            (setq alist (cons (list filename) alist))))
+        (when (coverlay-data-line-p current-line)
+          (let* ((cols (coverlay-extract-data-list current-line))
+                 (lineno (nth 0 cols))
+                 (count (nth 1 cols)))
+            (when (= count 0)
+              ;; (print (format "count %d is zero" count))
+              (coverlay-handle-uncovered-line alist filename lineno)))))
+      (forward-line 1))
+    alist))
 
 (defun coverlay-handle-uncovered-line (alist filename lineno)
   "Add uncovered line at LINENO in FILENAME to ALIST."
