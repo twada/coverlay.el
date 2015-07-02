@@ -107,6 +107,14 @@
   (interactive (list (read-file-name "lcov file: ")))
   (coverlay--lcov-update filepath))
 
+;;;###autoload
+(defun coverlay-reload-file ()
+  "(re)load lcov coverage data from current filepath."
+  (interactive)
+  (if coverlay--loaded-filepath
+      (coverlay-load-file coverlay--loaded-filepath)
+    (call-interactively #'coverlay-load-file)))
+
 (defun coverlay-file-load-callback ()
   "Initialize overlays in buffer after loading."
   (let* ((filename (buffer-file-name))
@@ -435,6 +443,7 @@
             (define-key map (kbd "C-c ll") 'coverlay-toggle-overlays)
             (define-key map (kbd "C-c lf") 'coverlay-load-file)
             (define-key map (kbd "C-c lw") 'coverlay-watch-file)
+            (define-key map (kbd "C-c lg") 'coverlay-reload-file)
             (define-key map (kbd "C-c ls") 'coverlay-display-stats)
             map)
   (coverlay--switch-mode coverlay-mode))

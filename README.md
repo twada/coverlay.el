@@ -44,6 +44,12 @@ Alternativly just read the coverage file once.
 
 This command is bound to "C-c lf" by default.
 
+And reread current coverage file
+
+    M-x coverlay-reload-file
+
+This command is bound to "C-c lg" by default.
+
 
 You can also manually toggle the overlays in the current buffer.
 
