@@ -166,12 +166,16 @@
   (with-temp-buffer
     (insert-file-contents filepath)
     (goto-char (point-min))
-    (setq coverlay-alist (coverlay-create-stats-alist-from-current-buffer))
+    (let ((lists (coverlay-create-stats-alist-from-current-buffer)))
+      (setq coverlay-alist (car lists))
+      (setq coverlay-stats-alist (cadr lists)))
     (setq coverlay--loaded-filepath filepath)))
 
 (defun coverlay-create-stats-alist-from-current-buffer ()
   "Create the alist from data in current buffer."
-  (coverlay-tuplize-cdr-of-alist (coverlay-reverse-cdr-of-alist (coverlay-parse-current-buffer))))
+  (let ((lists (coverlay-parse-current-buffer)))
+    (setcar lists (coverlay-tuplize-cdr-of-alist (coverlay-reverse-cdr-of-alist (car lists))))
+    lists))
 
 (defun coverlay-reverse-cdr-of-alist (target-alist)
   "Convert '((Japanese . (hoge fuga piyo)) (English . (foo bar baz))) to '((Japanese . (piyo fuga hoge)) (English . (baz bar foo))) in TARGET-ALIST."
@@ -208,25 +212,38 @@
 
 (defun coverlay-parse-current-buffer ()
   "Parse current buffer to alist.  car of each element is filename, cdr is segment of lines."
-  (let (alist filename)
+  (let (alist statslist filename)
     (while (not (eobp))
       (let ((current-line (coverlay-current-line)))
         (when (coverlay-source-file-p current-line)
           (setq filename (coverlay-extract-source-file current-line))
           (when (not (assoc filename alist))
             ;; (print (format "segments for %s does not exist" filename))
-            (setq alist (cons (list filename) alist))))
+            (setq alist (cons (list filename) alist))
+            (setq statslist (cons (list filename) statslist))))
+        (when (coverlay-line-count-line-p current-line)
+          (let ((filestats (assoc filename statslist)))
+            (let* ((stats-values (cdr filestats))
+                   (new-values (cons (list 'LF (coverlay--extract-line-count current-line)) stats-values)))
+              (setcdr filestats new-values))))
+        (when (coverlay-line-coverage-line-p current-line)
+          (let ((filestats (assoc filename statslist)))
+            (setcdr filestats (cons (list 'LH (coverlay--extract-line-coverage current-line)) (cdr filestats)))))
         (when (coverlay-data-line-p current-line)
           (let* ((cols (coverlay-extract-data-list current-line))
                  (lineno (nth 0 cols))
                  (count (nth 1 cols)))
             (when (= count 0)
               ;; (print (format "count %d is zero" count))
-              (coverlay-handle-uncovered-line alist filename lineno)))))
+              (coverlay--handle-uncovered-line alist filename lineno)))))
       (forward-line 1))
-    alist))
+    (list alist statslist)))
 
-(defun coverlay-handle-uncovered-line (alist filename lineno)
+(defun coverlay--handle-source-file-line (line)
+  "Set current source file from LINE,"
+  )
+
+(defun coverlay--handle-uncovered-line (alist filename lineno)
   "Add uncovered line at LINENO in FILENAME to ALIST."
   (let* ((file-segments (assoc filename alist))
          (segment-list-body (cdr file-segments)))
@@ -251,6 +268,14 @@
   "Predicate if LINE contains lcov line coverage data (DA)."
   (coverlay-string-starts-with line "DA:"))
 
+(defun coverlay-line-count-line-p (line)
+  "Predicate if LINE contains lcov line count data (LF)."
+  (coverlay-string-starts-with line "LF:"))
+
+(defun coverlay-line-coverage-line-p (line)
+  "Predicate if LINE contains lcov line coverage data (LH)."
+  (coverlay-string-starts-with line "LH:"))
+
 (defun coverlay-end-of-record-p (line)
   "Predicate if LINE contains lcov end marker (end_of_record)."
   (coverlay-string-starts-with line "end_of_record"))
@@ -262,6 +287,14 @@
          (string-equal (substring s 0 (length begins)) begins))
         (t nil)))
 
+(defun coverlay--extract-line-count (line)
+  "Extract line count from lcov source LINE."
+  (coverlay-extract-rhs-number line))
+
+(defun coverlay--extract-line-coverage (line)
+  "Extract line coverage from lcov source LINE."
+  (coverlay-extract-rhs-number line))
+
 (defun coverlay-extract-source-file (line)
   "Extract file name from lcov source LINE."
   (coverlay-extract-rhs line))
@@ -269,6 +302,10 @@
 (defun coverlay-extract-data-list (line)
   "Extract data list from lcov line coverage LINE."
   (mapcar 'string-to-number (split-string (coverlay-extract-rhs line) ",")))
+
+(defun coverlay-extract-rhs-number (line)
+  "Extract right hand numerical lcov value from LINE."
+  (string-to-number (coverlay-extract-rhs line)))
 
 (defun coverlay-extract-rhs (line)
   "Extract right hand lcov value from LINE."
@@ -392,33 +429,83 @@
         (coverlay--get-filenames)))
 
 ;;(coverlay--overlay-all-buffers)
+;; (print coverlay-stats-alist)
+
+(defun coverlay--stats-format-percent (lines covered)
+  "Format percent string from LINES and COVERED."
+  (format "%d%%" (* 100 (/ (float covered) lines))))
+
+(defun coverlay--stats-tabulate-file (file file-lines file-covered)
+  "Tabulate statistics for FILE from FILE-LINES and FILE-COVERED."
+  (list file (vector (coverlay--stats-format-percent file-lines file-covered)
+                     (format "%d" file-lines)
+                     (format "%d" file-covered)
+                     file)))
 
 (defun coverlay--stats-tabulate-files ()
   "Tabulate statistics on file base."
-  (mapcar (lambda (entry)
-            (let* ((file (car entry))
-                   (data (cdr entry)))
-              (message (format "entry: %s: %s" file data))
-              (list file (vector (if data "nope" "100%") file))))
-          coverlay-alist))
+  (let* ((lines 0) (covered 0)
+        (file-stats (mapcar (lambda (entry)
+                              (let* ((file (car entry))
+                                     (data (cdr entry))
+                                     (file-lines (cadr (assoc 'LF data)))
+                                     (file-covered (cadr (assoc 'LH data))))
+                                (setq lines (+ lines file-lines)
+                                      covered (+ covered file-covered))
+                                (coverlay--stats-tabulate-file file file-lines file-covered)))
+                            coverlay-stats-alist)))
+    (list lines covered file-stats)))
 
 (defun coverlay--stats-tabulate ()
   "Tabulate current statistics for major mode display."
-  (cons (list "x" (vector "???%" "overall")) (coverlay--stats-tabulate-files)))
+  (let* ((file-data (coverlay--stats-tabulate-files))
+         (lines (car file-data))
+         (covered (second file-data))
+         (file-stats (third file-data)))
+    (append file-stats (list (coverlay--stats-tabulate-file "overall" lines covered)))))
 
-;; (coverlay-display-stats)
+;; (coverlay--stats-tabulate)
 
+(defvar coverlay-stats-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "g") #'coverlay-reload-file)
+    map)
+  "The keymap of `coverlay-stats-mode'.")
+
+(defun coverlay--stats-sort (left right sorter)
+  "Always sort 'down' 'overall' entry, otherwise just compare LEFT and RIGHT with SORTER."
+  (if (string-equal "overall" (car left))
+      (cdr tabulated-list-sort-key)
+    (let* ((sort-column (car tabulated-list-sort-key))
+           (n (tabulated-list--column-number sort-column))
+           (A (aref (cadr left) n))
+           (B (aref (cadr right) n)))
+      (funcall sorter
+               (if (stringp A) A (car A))
+               (if (stringp B) B (car B))))))
+
+(defun coverlay--stats-sort-string (left right)
+  "Always sort 'down' 'overall' entry, otherwise just compare LEFT and RIGHT as string."
+  (coverlay--stats-sort left right #'string<))
+
+(defun coverlay--stats-sort-numeric (left right)
+  "Always sort 'down' 'overall' entry, otherwise just compare LEFT and RIGHT as string."
+  (coverlay--stats-sort left right #'(lambda (A B) (< (string-to-number A) (string-to-number B)))))
 
 (define-derived-mode coverlay-stats-mode tabulated-list-mode "coverlay-stats"
   "Mode for listing statistics of coverlay-mode."
-  (setq tabulated-list-format [("covered" 8 t)
-                               ("File" 100 t)]
+  (setq tabulated-list-format [("%%" 5 coverlay--stats-sort-numeric :right-align t :pad-right 2)
+                               ("Lines" 7 coverlay--stats-sort-numeric :right-align t :pad-right 2)
+                               ("Covered" 7 coverlay--stats-sort-numeric :right-align t :pad-right 2)
+                               ("File" 0 coverlay--stats-sort-string)]
+        tabulated-list-sort-key (cons "%%" nil)
         tabulated-list-padding 1
         tabulated-list-entries #'coverlay--stats-tabulate)
   (tabulated-list-init-header))
 
 (defun coverlay--update-stats-buffer ()
   "Refresh statistics, due to an update."
+
   (save-window-excursion
     (let ((buffer (get-buffer coverlay:stats-buffer-name)))
       (when buffer

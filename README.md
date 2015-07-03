@@ -51,6 +51,13 @@ And reread current coverage file
 This command is bound to "C-c lg" by default.
 
 
+Coverage information about all files included in the coverage file can be displayed in a list.
+
+    M-x coverlay-display-stats
+
+This command is bound to "C-c ls" by default.
+
+
 You can also manually toggle the overlays in the current buffer.
 
     M-x coverlay-toggle-overlays
