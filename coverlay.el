@@ -5,7 +5,7 @@
 ;; Author: Takuto Wada <takuto.wada at gmail com>
 ;; Keywords: coverage, overlay
 ;; Homepage: https://github.com/twada/coverlay.el
-;; Version: 0.5.0
+;; Version: 2.0.0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -46,10 +46,13 @@
 ;;
 ;;     M-x coverlay-toggle-overlays
 ;;
+;; Show a table of coverage across file
+;;
+;;     M-x coverlay-display-stats
+;;
 
 ;;; Todo/Ideas:
 ;;
-;; * add status view
 ;; * rework tested line handling to use actual lcov data
 ;; * better lcov data change detection on watch/load
 ;; * add branch coverage
@@ -97,6 +100,10 @@
   :type 'boolean
   :group 'coverlay)
 
+(defcustom coverlay:base-path ""
+  "base path for coverage."
+  :type 'string
+  :group 'coverlay)
 
 ;;
 ;; command: coverlay-load-file
@@ -118,7 +125,7 @@
 (defun coverlay-file-load-callback ()
   "Initialize overlays in buffer after loading."
   (let* ((filename (buffer-file-name))
-         (buffer-coverage-data (coverlay-stats-tuples-for (current-buffer) coverlay-alist)))
+         (buffer-coverage-data (coverlay-stats-tuples-for-buffer (current-buffer) coverlay-alist)))
     (when buffer-coverage-data
       (message (format "coverlay.el: loading coverlay for file: %s" filename))
       (coverlay-overlay-current-buffer-with-data buffer-coverage-data))))
@@ -337,11 +344,11 @@
 
 (defun coverlay-overlay-current-buffer ()
   "Overlay current buffer."
-  (let ((data (coverlay-stats-tuples-for (current-buffer) coverlay-alist)))
+  (let ((data (coverlay-stats-tuples-for-buffer (current-buffer) coverlay-alist)))
     (if data
         (coverlay-overlay-current-buffer-with-data data)
       (message (format "coverlay.el: no coverage data for %s in %s"
-                       (buffer-file-name (current-buffer))
+                       (coverlay--make-rel-filename-from-buffer (current-buffer))
                        coverlay--loaded-filepath)))))
 
 (defun coverlay-overlay-current-buffer-with-data (data)
@@ -390,11 +397,35 @@
   "Make overlay for values in TUPLE."
   (make-overlay (point-at-bol (car tuple)) (point-at-eol (cadr tuple))))
 
-(defun coverlay-stats-tuples-for (buffer stats-alist)
+(defun coverlay-stats-tuples-for (filename stats-alist)
+  "Construct tuple for FILENAME and data in STATS-ALIST."
+  (cdr (assoc filename stats-alist)))
+
+(defun coverlay-stats-tuples-for-buffer (buffer stats-alist)
   "Construct tuple for BUFFER and data in STATS-ALIST."
-  (cdr (assoc (expand-file-name (buffer-file-name buffer)) stats-alist)))
+  (coverlay-stats-tuples-for (coverlay--make-rel-filename-from-buffer buffer) stats-alist))
+
+(defun coverlay--make-rel-filename-from-buffer (buffer)
+  "Make relative filename from BUFFER."
+  (coverlay--make-rel-filename (coverlay--make-buffer-filename buffer)))
+
+(defun coverlay--make-buffer-filename (buffer)
+  "Fetch full filename from BUFFER."
+  (expand-file-name (buffer-file-name buffer) default-directory))
+
+(defun coverlay--make-rel-filename (filename)
+  "Make FILENAME relative to base path."
+  (replace-regexp-in-string coverlay:base-path "" filename))
+
+(defun coverlay--expand-filename (rel)
+  "Expand REL with coverlay:base-path."
+  (expand-file-name rel coverlay:base-path))
 
 (defun coverlay--get-filenames ()
+  "Return all relative filenames from alist."
+  (mapcar #'coverlay--expand-filename (coverlay--get-cov-filenames)))
+
+(defun coverlay--get-cov-filenames ()
   "Return all filenames from current lcov file."
   (mapcar #'car coverlay-alist))
 

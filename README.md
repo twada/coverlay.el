@@ -65,6 +65,12 @@ You can also manually toggle the overlays in the current buffer.
 This command is bound to "C-c ll" by default.
 
 
+### customization
+
+Some values can be customized via customize. This includes the possibility to set a base path if the filenames in the coverage file are relative.
+
+
+
 AUTHOR
 ---------------------------------------
 * [Takuto Wada](http://github.com/twada)
