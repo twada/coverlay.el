@@ -28,13 +28,47 @@ Load coverlay.el in your .emacs
 
 ### use
 
-First, load lcov file in your project into coverlay buffer.
+Coverlay contains a global mode that will highlight missed lines on every covered file.
+
+    M-x coverlay-mode
+
+
+Load a lcov file and keep watching it for changes.
+
+    M-x coverlay-watch-file /path/to/lcov-file
+
+
+Alternativly just read the coverage file once.
 
     M-x coverlay-load-file /path/to/lcov-file
 
-Open target code then toggle overlay.
+This command is bound to "C-c lf" by default.
+
+And reread current coverage file
+
+    M-x coverlay-reload-file
+
+This command is bound to "C-c lg" by default.
+
+
+Coverage information about all files included in the coverage file can be displayed in a list.
+
+    M-x coverlay-display-stats
+
+This command is bound to "C-c ls" by default.
+
+
+You can also manually toggle the overlays in the current buffer.
 
     M-x coverlay-toggle-overlays
+
+This command is bound to "C-c ll" by default.
+
+
+### customization
+
+Some values can be customized via customize. This includes the possibility to set a base path if the filenames in the coverage file are relative.
+
 
 
 AUTHOR
@@ -45,6 +79,7 @@ AUTHOR
 CONTRIBUTORS
 ---------------------------------------
 * [syohex](https://github.com/syohex)
+* [FossiFoo](https://github.com/fossifoo)
 
 
 LICENSE
