@@ -6,6 +6,7 @@
 ;; Keywords: coverage, overlay
 ;; Homepage: https://github.com/twada/coverlay.el
 ;; Version: 2.0.0
+;; Package-Requires: ((cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -22,6 +23,7 @@
 
 (require 'filenotify)            ; File watching
 (require 'tabulated-list)        ; To display statistics
+(require 'cl-lib)
 
 ;;; Commentary:
 ;; ------------
@@ -491,8 +493,8 @@
   "Tabulate current statistics for major mode display."
   (let* ((file-data (coverlay--stats-tabulate-files))
          (lines (car file-data))
-         (covered (second file-data))
-         (file-stats (third file-data)))
+         (covered (cl-second file-data))
+         (file-stats (cl-third file-data)))
     (append file-stats (list (coverlay--stats-tabulate-file "overall" lines covered)))))
 
 ;; (coverlay--stats-tabulate)
