@@ -5,9 +5,8 @@
 ;; Author: Takuto Wada <takuto.wada at gmail com>
 ;; Keywords: coverage, overlay
 ;; Homepage: https://github.com/twada/coverlay.el
-;; Package-Requires: ((emacs "24.1"))
 ;; Version: 2.0.0
-;; Package-Requires: ((cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
