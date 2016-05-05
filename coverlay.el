@@ -1,10 +1,11 @@
-;;; coverlay.el --- Test coverage overlay for Emacs
+;;; coverlay.el --- Test coverage overlays
 
 ;; Copyright (C) 2011-2014 Takuto Wada
 
 ;; Author: Takuto Wada <takuto.wada at gmail com>
 ;; Keywords: coverage, overlay
 ;; Homepage: https://github.com/twada/coverlay.el
+;; Package-Requires: ((emacs "24.1"))
 ;; Version: 2.0.0
 
 ;; This program is free software; you can redistribute it and/or modify
