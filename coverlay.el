@@ -560,11 +560,11 @@
   :lighter " lcov"
   :global t
   :keymap (let ((map (make-sparse-keymap)))
-            (define-key map (kbd "M-o l") 'coverlay-toggle-overlays)
-            (define-key map (kbd "M-o f") 'coverlay-load-file)
-            (define-key map (kbd "M-o w") 'coverlay-watch-file)
-            (define-key map (kbd "M-o g") 'coverlay-reload-file)
-            (define-key map (kbd "M-o s") 'coverlay-display-stats)
+            (define-key map (kbd "C-c C-l l") 'coverlay-toggle-overlays)
+            (define-key map (kbd "C-c C-l f") 'coverlay-load-file)
+            (define-key map (kbd "C-c C-l w") 'coverlay-watch-file)
+            (define-key map (kbd "C-c C-l g") 'coverlay-reload-file)
+            (define-key map (kbd "C-c C-l s") 'coverlay-display-stats)
             map)
   (coverlay--switch-mode coverlay-mode))
 
