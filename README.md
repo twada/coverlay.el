@@ -42,27 +42,27 @@ Alternativly just read the coverage file once.
 
     M-x coverlay-load-file /path/to/lcov-file
 
-This command is bound to "C-c lf" by default.
+This command is bound to "M-o f" by default.
 
 And reread current coverage file
 
     M-x coverlay-reload-file
 
-This command is bound to "C-c lg" by default.
+This command is bound to "M-o g" by default.
 
 
 Coverage information about all files included in the coverage file can be displayed in a list.
 
     M-x coverlay-display-stats
 
-This command is bound to "C-c ls" by default.
+This command is bound to "M-o s" by default.
 
 
 You can also manually toggle the overlays in the current buffer.
 
     M-x coverlay-toggle-overlays
 
-This command is bound to "C-c ll" by default.
+This command is bound to "M-o t" by default.
 
 
 ### customization
