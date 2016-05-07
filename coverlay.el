@@ -1,6 +1,6 @@
 ;;; coverlay.el --- Test coverage overlays
 
-;; Copyright (C) 2011-2014 Takuto Wada
+;; Copyright (C) 2011-2016 Takuto Wada and other contributors
 
 ;; Author: Takuto Wada <takuto.wada at gmail com>
 ;; Keywords: coverage, overlay
