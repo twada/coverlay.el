@@ -80,6 +80,7 @@ CONTRIBUTORS
 ---------------------------------------
 * [syohex](https://github.com/syohex)
 * [FossiFoo](https://github.com/fossifoo)
+* [kytwb](https://github.com/kytwb)
 
 
 LICENSE
