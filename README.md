@@ -3,6 +3,8 @@ coverlay.el
 
 Test coverage overlay for Emacs
 
+[![MELPA](https://melpa.org/packages/coverlay-badge.svg)](https://melpa.org/#/coverlay)
+
 
 DESCRIPTION
 ---------------------------------------
