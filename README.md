@@ -12,21 +12,17 @@ DESCRIPTION
 
 `coverlay.el` supports widely used [LCOV format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php). (for example, [Coveralls](https://coveralls.io/) uses lcov format)
 
-Please note that `coverlay.el` is a beta version product. Pull-requests, issue reports and patches are always welcomed.
+
+INSTALL
+---------------------------------------
+
+With GNU Emacs 24 or later, you can use its [package](https://www.gnu.org/software/emacs/manual/html_node/emacs/Packages.html) feature to install coverlay.el from [MELPA](http://melpa.org/).
+
+    M-x package-install coverlay
 
 
 HOW TO USE
 ---------------------------------------
-
-### configure
-
-Load coverlay.el in your .emacs
-
-```lisp
-(require 'coverlay)
-```
-
-### use
 
 Coverlay contains a global mode that will highlight missed lines on every covered file.
 
