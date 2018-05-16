@@ -28,7 +28,7 @@ HOW TO USE
 
 Coverlay contains a global mode that will highlight missed lines on every covered file.
 
-    M-x coverlay-mode
+    M-x global-coverlay-mode
 
 
 Load a lcov file and keep watching it for changes.
@@ -79,7 +79,7 @@ CONTRIBUTORS
 * [syohex](https://github.com/syohex)
 * [FossiFoo](https://github.com/fossifoo)
 * [kytwb](https://github.com/kytwb)
-
+* [tadsan](https://github.com/zonuexe)
 
 LICENSE
 ---------------------------------------
