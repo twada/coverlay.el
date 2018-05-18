@@ -578,9 +578,9 @@
   :require 'coverlay)
 
 ;;;###autoload
-(make-obsolete 'coverlay-mode #'global-coverlay-mode "3.0.0")
+(define-obsolete-function-alias 'coverlay-mode #'global-coverlay-mode "3.0.0")
 ;;;###autoload
-(make-obsolete-variable 'coverlay-mode-hook 'coverlay-minor-mode-hook "3.0.0")
+(define-obsolete-variable-alias 'coverlay-mode-hook 'coverlay-minor-mode-hook "3.0.0")
 
 (defun coverlay--switch-mode (enabled)
   "Switch global mode to be ENABLED or not."
