@@ -498,9 +498,21 @@
 
 ;; (coverlay--stats-tabulate)
 
+(defun coverlay-open-file ()
+  "Open file from a line in the stats report."
+  (interactive)
+  (let ((line (buffer-substring-no-properties (line-beginning-position) (line-end-position)))
+        (filename))
+    (save-match-data
+      (and (string-match "\\(\\/.*\\)$" line)
+           (setq filename (match-string 1 line))))
+    (when filename
+      (find-file-other-window filename))))
+
 (defvar coverlay-stats-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "g") #'coverlay-reload-file)
+    (define-key map (kbd "RET") #'coverlay-open-file)
     map)
   "The keymap of `coverlay-stats-mode'.")
 
@@ -551,7 +563,15 @@
   ;; (coverlay--update-stats-buffer)
   (pop-to-buffer coverlay:stats-buffer-name)
   (coverlay-stats-mode)
-  (tabulated-list-print))
+  (tabulated-list-print)
+  (with-current-buffer (get-buffer coverlay:stats-buffer-name)
+    (read-only-mode -1)
+    (goto-char (point-min))
+    (while (not (eobp))
+      (add-text-properties (line-beginning-position) (line-end-position)
+                           '(face font-lock-function-name-face intangible t))
+      (forward-line 1))
+    (read-only-mode 1)))
 
 ;;;###autoload
 (define-minor-mode coverlay-minor-mode
