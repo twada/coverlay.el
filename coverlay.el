@@ -130,9 +130,7 @@
   "(re)load lcov coverage data from current filepath."
   (interactive)
   (if coverlay--loaded-filepath
-      (progn
-        (coverlay-load-file coverlay--loaded-filepath)
-        (coverlay--add-text-properties))
+      (coverlay-load-file coverlay--loaded-filepath)
     (call-interactively #'coverlay-load-file)))
 
 (defun coverlay-file-load-callback ()
@@ -566,7 +564,8 @@
     (let ((buffer (get-buffer coverlay:stats-buffer-name)))
       (when buffer
         (with-current-buffer buffer
-          (revert-buffer))))))
+          (revert-buffer))
+        (coverlay--add-text-properties)))))
 
 ;;;###autoload
 (defun coverlay-display-stats ()
