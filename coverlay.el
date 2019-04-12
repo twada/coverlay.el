@@ -109,16 +109,6 @@
 ;;
 ;; command: coverlay-load-file
 
-(defun coverlay--add-text-properties ()
-  (with-current-buffer (get-buffer coverlay:stats-buffer-name)
-    (read-only-mode -1)
-    (goto-char (point-min))
-    (while (not (eobp))
-      (add-text-properties (line-beginning-position) (line-end-position)
-                           '(face font-lock-function-name-face intangible t))
-      (forward-line 1))
-    (read-only-mode 1)))
-
 ;;;###autoload
 (defun coverlay-load-file (filepath)
   "(re)load lcov coverage data from FILEPATH."
@@ -482,7 +472,7 @@
   (list file (vector (coverlay--stats-format-percent file-lines file-covered)
                      (format "%d" file-lines)
                      (format "%d" file-covered)
-                     file)))
+                     (propertize file 'font-lock-face font-lock-function-name-face))))
 
 (defun coverlay--stats-tabulate-files ()
   "Tabulate statistics on file base."
@@ -564,8 +554,7 @@
     (let ((buffer (get-buffer coverlay:stats-buffer-name)))
       (when buffer
         (with-current-buffer buffer
-          (revert-buffer))
-        (coverlay--add-text-properties)))))
+          (revert-buffer))))))
 
 ;;;###autoload
 (defun coverlay-display-stats ()
@@ -574,8 +563,7 @@
   ;; (coverlay--update-stats-buffer)
   (pop-to-buffer coverlay:stats-buffer-name)
   (coverlay-stats-mode)
-  (tabulated-list-print)
-  (coverlay--add-text-properties))
+  (tabulated-list-print))
 
 ;;;###autoload
 (define-minor-mode coverlay-minor-mode
