@@ -109,6 +109,16 @@
 ;;
 ;; command: coverlay-load-file
 
+(defun coverlay--add-text-properties ()
+  (with-current-buffer (get-buffer coverlay:stats-buffer-name)
+    (read-only-mode -1)
+    (goto-char (point-min))
+    (while (not (eobp))
+      (add-text-properties (line-beginning-position) (line-end-position)
+                           '(face font-lock-function-name-face intangible t))
+      (forward-line 1))
+    (read-only-mode 1)))
+
 ;;;###autoload
 (defun coverlay-load-file (filepath)
   "(re)load lcov coverage data from FILEPATH."
@@ -120,7 +130,9 @@
   "(re)load lcov coverage data from current filepath."
   (interactive)
   (if coverlay--loaded-filepath
-      (coverlay-load-file coverlay--loaded-filepath)
+      (progn
+        (coverlay-load-file coverlay--loaded-filepath)
+        (coverlay--add-text-properties))
     (call-interactively #'coverlay-load-file)))
 
 (defun coverlay-file-load-callback ()
@@ -564,14 +576,7 @@
   (pop-to-buffer coverlay:stats-buffer-name)
   (coverlay-stats-mode)
   (tabulated-list-print)
-  (with-current-buffer (get-buffer coverlay:stats-buffer-name)
-    (read-only-mode -1)
-    (goto-char (point-min))
-    (while (not (eobp))
-      (add-text-properties (line-beginning-position) (line-end-position)
-                           '(face font-lock-function-name-face intangible t))
-      (forward-line 1))
-    (read-only-mode 1)))
+  (coverlay--add-text-properties))
 
 ;;;###autoload
 (define-minor-mode coverlay-minor-mode
