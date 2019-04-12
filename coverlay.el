@@ -345,18 +345,18 @@
 
 (defun coverlay-overlay-current-buffer ()
   "Overlay current buffer."
-  (let ((data (coverlay-stats-tuples-for-buffer (current-buffer) coverlay-alist)))
-    (if data
-        (coverlay-overlay-current-buffer-with-data data)
-      (message (format "coverlay.el: no coverage data for %s in %s"
-                       (coverlay--make-rel-filename-from-buffer (current-buffer))
-                       coverlay--loaded-filepath)))))
+  (if (coverlay-buffer-in-stats-p (current-buffer) coverlay-alist)
+      (let ((data (coverlay-stats-tuples-for-buffer (current-buffer) coverlay-alist)))
+        (coverlay-overlay-current-buffer-with-data data))
+    (message (format "coverlay.el: no coverage data for %s in %s"
+                     (coverlay--make-rel-filename-from-buffer (current-buffer))
+                     coverlay--loaded-filepath))))
 
 (defun coverlay-overlay-current-buffer-with-data (data)
   "Overlay current buffer with DATA."
   (coverlay-clear-cov-overlays)
   (when coverlay:mark-tested-lines
-        (coverlay--make-covered-overlay))
+    (coverlay--make-covered-overlay))
   (coverlay-overlay-current-buffer-with-list data))
 
 (defun coverlay-overlay-exists-p ()
@@ -380,10 +380,11 @@
 
 (defun coverlay-overlay-current-buffer-with-list (tuple-list)
   "Overlay current buffer acording to given TUPLE-LIST."
-  (save-excursion
-    (goto-char (point-min))
-    (dolist (ovl (coverlay-map-overlays tuple-list))
-      (coverlay--overlay-put ovl coverlay:untested-line-background-color))))
+  (if tuple-list
+      (save-excursion
+        (goto-char (point-min))
+        (dolist (ovl (coverlay-map-overlays tuple-list))
+          (coverlay--overlay-put ovl coverlay:untested-line-background-color)))))
 
 (defun coverlay--overlay-put (ovl color)
   "Record actual overlay in OVL with COLOR."
@@ -405,6 +406,10 @@
 (defun coverlay-stats-tuples-for-buffer (buffer stats-alist)
   "Construct tuple for BUFFER and data in STATS-ALIST."
   (coverlay-stats-tuples-for (coverlay--make-rel-filename-from-buffer buffer) stats-alist))
+
+(defun coverlay-buffer-in-stats-p (buffer stats-alist)
+  "Predicate if STATS-ALIST contains data for file opened in BUFFER."
+  (car (assoc (coverlay--make-rel-filename-from-buffer buffer) stats-alist)))
 
 (defun coverlay--make-rel-filename-from-buffer (buffer)
   "Make relative filename from BUFFER."
