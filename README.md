@@ -80,6 +80,8 @@ CONTRIBUTORS
 * [FossiFoo](https://github.com/fossifoo)
 * [kytwb](https://github.com/kytwb)
 * [tadsan](https://github.com/zonuexe)
+* [nloyola](https://github.com/nloyola)
+
 
 LICENSE
 ---------------------------------------
