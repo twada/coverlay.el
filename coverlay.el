@@ -477,7 +477,7 @@
   (list file (vector (coverlay--stats-format-percent file-lines file-covered)
                      (format "%d" file-lines)
                      (format "%d" file-covered)
-                     file)))
+                     (propertize file 'font-lock-face font-lock-function-name-face))))
 
 (defun coverlay--stats-tabulate-files ()
   "Tabulate statistics on file base."
@@ -503,9 +503,21 @@
 
 ;; (coverlay--stats-tabulate)
 
+(defun coverlay-open-file ()
+  "Open file from a line in the stats report."
+  (interactive)
+  (let ((line (buffer-substring-no-properties (line-beginning-position) (line-end-position)))
+        (filename))
+    (save-match-data
+      (and (string-match "\\(\\/.*\\)$" line)
+           (setq filename (match-string 1 line))))
+    (when filename
+      (find-file-other-window filename))))
+
 (defvar coverlay-stats-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "g") #'coverlay-reload-file)
+    (define-key map (kbd "RET") #'coverlay-open-file)
     map)
   "The keymap of `coverlay-stats-mode'.")
 
