@@ -106,6 +106,32 @@
   :type 'string
   :group 'coverlay)
 
+(defcustom coverlay:fringe 'nil
+  "Display status in fringe."
+  :type 'bool
+  :group 'coverlay)
+
+(defcustom coverlay:fringe-position 'right-fringe
+  "Position of fringe. right-fringe or left-fringe."
+  :type 'bool
+  :group 'coverlay)
+
+(defcustom coverlay:fringe-symbol 'empty-line
+  "The symbol to display on each line while in coverlay-mode.
+See `fringe-bitmaps' for a full list of options"
+  :group 'coverlay
+  :type 'symbol)
+
+(defcustom coverlay:tested-face 'success
+  "The face used for tested lines."
+  :type 'face
+  :group 'coverlay)
+
+(defcustom coverlay:untested-face 'error
+  "The face used for tested lines."
+  :type 'face
+  :group 'coverlay)
+
 ;;
 ;; command: coverlay-load-file
 
@@ -376,7 +402,7 @@
 
 (defun coverlay--make-covered-overlay ()
   "Mark all lines in current buffer as covered with overlay."
-  (coverlay--overlay-put (make-overlay (point-min) (point-max)) coverlay:tested-line-background-color))
+  (coverlay--overlay-put (make-overlay (point-min) (point-max)) coverlay:tested-line-background-color coverlay:tested-face))
 
 (defun coverlay-overlay-current-buffer-with-list (tuple-list)
   "Overlay current buffer acording to given TUPLE-LIST."
@@ -384,11 +410,15 @@
       (save-excursion
         (goto-char (point-min))
         (dolist (ovl (coverlay-map-overlays tuple-list))
-          (coverlay--overlay-put ovl coverlay:untested-line-background-color)))))
+          (coverlay--overlay-put ovl coverlay:untested-line-background-color coverlay:untested-face)))))
 
-(defun coverlay--overlay-put (ovl color)
-  "Record actual overlay in OVL with COLOR."
-  (overlay-put ovl 'face (cons 'background-color color))
+(defun coverlay--overlay-put (ovl color face)
+  "Record actual overlay in OVL with COLOR or FACE."
+  (if coverlay:fringe
+    (overlay-put ovl 'line-prefix
+      (propertize "f" 'display
+        `(,coverlay:fringe-position ,coverlay:fringe-symbol ,face)))
+    (overlay-put ovl 'face (cons 'background-color color)))
   (overlay-put ovl 'coverlay t))
 
 (defun coverlay-map-overlays (tuple-list)
