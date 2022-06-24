@@ -87,17 +87,17 @@
   :group 'coverlay)
 
 (defcustom coverlay:untested-line-background-color "red4"
-  "background-color for untested lines."
+  "background-color for untested lines.  Set to nil to disable."
   :type 'string
   :group 'coverlay)
 
 (defcustom coverlay:tested-line-background-color "green1"
-  "background-color for tested lines."
+  "background-color for tested lines.  Set to nil to disable."
   :type 'string
   :group 'coverlay)
 
 (defcustom coverlay:mark-tested-lines t
-  "background-color for tested lines."
+  "Whether or not to display the code-coverage overlay."
   :type 'boolean
   :group 'coverlay)
 
@@ -388,8 +388,9 @@
 
 (defun coverlay--overlay-put (ovl color)
   "Record actual overlay in OVL with COLOR."
-  (overlay-put ovl 'face (cons 'background-color color))
-  (overlay-put ovl 'coverlay t))
+  (overlay-put ovl 'coverlay t)
+  (when color
+    (overlay-put ovl 'face (cons 'background-color color))))
 
 (defun coverlay-map-overlays (tuple-list)
   "make-overlay for each of a TUPLE(two line-numbers) LIST."
